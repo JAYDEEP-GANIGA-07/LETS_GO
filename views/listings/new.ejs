@@ -1,0 +1,132 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Place</title> -->
+    
+<!-- </head> -->
+  <%layout("/layouts/boilerplate") %>
+<body>
+    <div class="row mt-3">
+        <div class="col-8 offset-2" >
+    <form method="POST" action="/listings" novalidate class="needs-validation" enctype="multipart/form-data">
+        <br><br>
+        <h3>Create A New Listing</h3>
+        <br><br>
+        <div class="mb-3">
+         <label for="title" class="form-label"> Title</label>
+         <input name="listing[title]" type="text" placeholder="Enter Title" class="form-control" required>
+         <div class="valid-feedback">Looks Good!</div>
+        </div>
+        <div class="mb-3">
+         <label for="description" class="form-label"> Description</label>
+         <textarea name="listing[description]" type="text" placeholder="Enter Description"  class="form-control" required></textarea> 
+          <div class="invalid-feedback">Please Enter a short description!</div>
+        </div>
+    
+        <div class="mb-3">
+         <label for="image" class="form-label"> Upload Image</label>
+         <input name="listing[image]"   type="file"  class="form-control" required>
+        </div>
+    
+ <div class="row">
+        <div class="mb-3 col-md-8">
+         <label for="price" class="form-label"> Price</label>
+         <input name="listing[price]" type="number" placeholder="Enter Price"  class="form-control"  required>
+          <div class="invalid-feedback">Price Should be Valid!</div>
+        </div>
+        <div class="mb-3 col-md-4">
+         <label for="country" class="form-label"> Country</label>
+         <input name="listing[country]" type="text" placeholder="Enter Country"  class="form-control" required>
+         <div class="invalid-feedback">Please Enter the country name!</div>
+        </div>
+ </div>
+<div class="mb-3 ">
+         <label for="location" class="form-label"> Location</label>
+         <input name="listing[location]" type="text" placeholder="Enter Location"  class="form-control" required>
+          <div class="invalid-feedback">Location should be valid!</div>
+        </div>
+
+
+<!-- map -->
+<div class="mb-3">
+    <label class="form-label">Pin Location on Map</label>
+    <div id="new-map" style="height:250px; border-radius:1rem;"></div>
+    <input type="hidden" name="listing[geometry][type]" value="Point">
+    <input type="hidden" name="listing[geometry][coordinates][]" id="lng" value="">
+    <input type="hidden" name="listing[geometry][coordinates][]" id="lat" value="">
+    <small class="text-muted">Click on the map to drop a pin, or it will auto-detect from your location name.</small>
+</div>
+
+
+
+
+      <div class="mb-3">
+  <label for="category" class="form-label">Category</label>
+  <select name="listing[category]" class="form-select" required>
+    <option value="" disabled selected>Select a category</option>
+    <option value="trending">Trending</option>
+    <option value="rooms">Rooms</option>
+    <option value="iconic city">Iconic City</option>
+    <option value="mountains">Mountains</option>
+    <option value="castles">Castles</option>
+    <option value="amazing pools">Amazing Pools</option>
+    <option value="camping">Camping</option>
+    <option value="farms">Farms</option>
+    <option value="arctic">Arctic</option>
+    <option value="domes">Domes</option>
+    <option value="ports">Ports</option>
+  </select>
+  <div class="invalid-feedback">Please select a category!</div>
+</div>  
+        
+         <br>
+     <button class="btn btn-dark add-btn mt-3">Add</button>
+     <br><br>
+    </form>
+    </div>
+    </div>
+</body>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    const map = L.map('new-map').setView([20, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    let marker;
+
+    // click to place marker manually
+    map.on('click', function(e) {
+        const { lat, lng } = e.latlng;
+        if (marker) marker.remove();
+        marker = L.marker([lat, lng]).addTo(map).bindPopup("Selected location").openPopup();
+        document.getElementById('lat').value = lat;
+        document.getElementById('lng').value = lng;
+    });
+
+    // auto-detect when user types location
+    document.querySelector('input[name="listing[location]"]').addEventListener('blur', function() {
+        const location = this.value;
+        const country = document.querySelector('input[name="listing[country]"]').value;
+        const query = location + ", " + country;
+
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lng = parseFloat(data[0].lon);
+                    map.setView([lat, lng], 10);
+                    if (marker) marker.remove();
+                    marker = L.marker([lat, lng]).addTo(map).bindPopup(query).openPopup();
+                    document.getElementById('lat').value = lat;
+                    document.getElementById('lng').value = lng;
+                }
+            });
+    });
+</script>
+<!-- </html> -->

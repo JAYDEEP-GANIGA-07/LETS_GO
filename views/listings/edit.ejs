@@ -1,0 +1,120 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit</title>
+</head>
+<body>
+     -->
+  <%layout("/layouts/boilerplate") %>
+  <div class="row mt-3">
+     <div class="col-8 offset-2" >  
+    <form method="POST" action="/listings/<%=listing._id%>?_method=PUT" novalidate class="needs-validation" enctype="multipart/form-data">
+        <h3>Edit Your Listing</h3>
+
+  <div class="mb-3">
+         <label for="title" class="form-label">Title</label>
+         <input name="listing[title]" type="text" value="<%=listing.title%>" class="form-control" required>
+         <div class="valid-feedback">Looks Good!</div>
+        </div>
+        <div class="mb-3">
+         <label for="description" class="form-label">Description</label>
+         <textarea name="listing[description]" type="text" cols="30" rows="3"   class="form-control" required> <%=listing.description%></textarea>
+         <div class="invalid-feedback">Please Enter a short description!</div>
+        </div>
+
+
+         <div class="mb-3">
+        Original Listing Image <br >
+          <img src="<%=originalImageUrl%>" style="height: 30vh; width: 450px;">
+        </div>
+
+        <div class="mb-3">
+         <label for="image" class="form-label">Upload New Image</label>
+           <input name="listing[image]" class="form-control"  type="file"  >
+        </div>
+    
+ <div class="row">
+        <div class="mb-3 col-md-8">
+         <label for="price" class="form-label">Price</label>
+            <input name="listing[price]" type="number" value=<%=listing.price%> class="form-control" required>
+              <div class="invalid-feedback">Price Should be Valid!</div>
+        </div>
+        <div class="mb-3 col-md-4">
+         <label for="country" class="form-label">Country</label>
+       <input name="listing[country]" type="text" value="<%=listing.country%>"  class="form-control" required>
+        <div class="invalid-feedback">Please Enter the country name!</div>
+        </div>
+ </div>
+<div class="mb-3 ">
+         <label for="location" class="form-label">Location</label>
+         <input name="listing[location]" type="text" value="<%=listing.location%>"  class="form-control" required>
+          <div class="invalid-feedback">Location should be valid!</div>
+</div>
+        
+
+<div class="mb-3">
+  <label for="category" class="form-label">Category</label>
+  <select name="listing[category]" class="form-select" required>
+    <option value="" disabled>Select a category</option>
+    <option value="trending" <%= listing.category === 'trending' ? 'selected' : '' %>>Trending</option>
+    <option value="rooms" <%= listing.category === 'rooms' ? 'selected' : '' %>>Rooms</option>
+    <option value="iconic city" <%= listing.category === 'iconic city' ? 'selected' : '' %>>Iconic City</option>
+    <option value="mountains" <%= listing.category === 'mountains' ? 'selected' : '' %>>Mountains</option>
+    <option value="castles" <%= listing.category === 'castles' ? 'selected' : '' %>>Castles</option>
+    <option value="amazing pools" <%= listing.category === 'amazing pools' ? 'selected' : '' %>>Amazing Pools</option>
+    <option value="camping" <%= listing.category === 'camping' ? 'selected' : '' %>>Camping</option>
+    <option value="farms" <%= listing.category === 'farms' ? 'selected' : '' %>>Farms</option>
+    <option value="arctic" <%= listing.category === 'arctic' ? 'selected' : '' %>>Arctic</option>
+    <option value="domes" <%= listing.category === 'domes' ? 'selected' : '' %>>Domes</option>
+    <option value="ports" <%= listing.category === 'ports' ? 'selected' : '' %>>Ports</option>
+  </select>
+  <div class="invalid-feedback">Please select a category!</div>
+</div>
+<div class="mb-3">
+    <label class="form-label">Update Location on Map</label>
+    <div id="edit-map" style="height:250px; border-radius:1rem;"></div>
+    <input type="hidden" name="listing[geometry][type]" value="Point">
+    <input type="hidden" name="listing[geometry][coordinates][]" id="lng" value="<%=listing.geometry ? listing.geometry.coordinates[0] : ''%>">
+    <input type="hidden" name="listing[geometry][coordinates][]" id="lat" value="<%=listing.geometry ? listing.geometry.coordinates[1] : ''%>">
+    <small class="text-muted">Click on the map to update the pin location.</small>
+</div>
+
+        <button class="btn btn-dark edit-btn mt-3">Edit</button>
+    </form>
+     </div>
+    </div>
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  // @ts-nocheck
+    const existingLat = <%= listing.geometry ? listing.geometry.coordinates[1] : 20 %>;
+    const existingLng = <%= listing.geometry ? listing.geometry.coordinates[0] : 0 %>;
+
+    const map = L.map('edit-map').setView([existingLat, existingLng], 10);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // show existing marker
+    let marker = L.marker([existingLat, existingLng])
+        .addTo(map)
+        .bindPopup("Current location")
+        .openPopup();
+
+    // click to move marker
+    map.on('click', function(e) {
+        const { lat, lng } = e.latlng;
+        if (marker) marker.remove();
+        marker = L.marker([lat, lng]).addTo(map).bindPopup("New location").openPopup();
+        document.getElementById('lat').value = lat;
+        document.getElementById('lng').value = lng;
+    });
+</script>
+
+</body>
+<!-- </html> -->

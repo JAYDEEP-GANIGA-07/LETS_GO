@@ -1,0 +1,280 @@
+<%layout("/layouts/boilerplate") %>
+
+<style>
+  .profile-header {
+    background: linear-gradient(135deg, #f72331 0%, #c0392b 100%);
+    color: white;
+    border-radius: 1rem;
+    padding: 2.5rem;
+    margin-top: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .profile-avatar {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background-color: white;
+    color: #f72331;
+    font-size: 2.5rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .profile-name {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .profile-email {
+    opacity: 0.85;
+    margin: 0.2rem 0 0 0;
+    font-size: 1rem;
+  }
+
+  .profile-joined {
+    opacity: 0.7;
+    font-size: 0.85rem;
+    margin-top: 0.4rem;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 1rem;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+  }
+
+  .stat-card {
+    flex: 1;
+    min-width: 130px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 1rem;
+    padding: 1.2rem 1.5rem;
+    text-align: center;
+  }
+
+  .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #f72331;
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 0.2rem;
+  }
+
+  .section-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 2rem 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #f72331;
+    display: inline-block;
+  }
+
+  .listing-card-profile {
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 1rem !important;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .listing-card-profile:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    color: inherit;
+  }
+
+  .listing-card-profile img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+  }
+
+  .listing-card-body {
+    padding: 0.8rem 1rem;
+  }
+
+  .listing-card-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .listing-card-location {
+    font-size: 0.8rem;
+    color: #666;
+  }
+
+  .listing-card-price {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #222;
+    margin-top: 0.3rem;
+  }
+
+  .listing-actions {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem 0.8rem;
+  }
+
+  .btn-edit-small {
+    font-size: 0.78rem;
+    padding: 0.25rem 0.7rem;
+    background-color: #222;
+    color: white;
+    border: none;
+    border-radius: 0.4rem;
+    text-decoration: none;
+  }
+
+  .btn-edit-small:hover {
+    background-color: #444;
+    color: white;
+  }
+
+  .btn-delete-small {
+    font-size: 0.78rem;
+    padding: 0.25rem 0.7rem;
+    background-color: #f72331;
+    color: white;
+    border: none;
+    border-radius: 0.4rem;
+    cursor: pointer;
+  }
+
+  .btn-delete-small:hover {
+    background-color: #c0392b;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #999;
+    background: #fafafa;
+    border-radius: 1rem;
+    border: 1px dashed #ddd;
+  }
+
+  .empty-state i {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .add-listing-btn {
+    background-color: #f72331;
+    color: white;
+    border: none;
+    border-radius: 2rem;
+    padding: 0.6rem 1.5rem;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: inline-block;
+    margin-top: 1rem;
+  }
+
+  .add-listing-btn:hover {
+    background-color: #c0392b;
+    color: white;
+  }
+</style>
+
+<div class="profile-header">
+  <div class="profile-avatar">
+    <%= profileUser.username.charAt(0).toUpperCase() %>
+  </div>
+  <div>
+    <p class="profile-name">@<%= profileUser.username %></p>
+    <p class="profile-email"><i class="fa-solid fa-envelope me-1"></i><%= profileUser.email %></p>
+    <p class="profile-joined"><i class="fa-solid fa-calendar me-1"></i>Member of WanderLust</p>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-number"><%= userListings.length %></div>
+    <div class="stat-label">Listings</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number"><%= totalReviews %></div>
+    <div class="stat-label">Reviews Received</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number">
+      <% if(avgRating > 0){ %>
+        <%= avgRating %> <i class="fa-solid fa-star" style="font-size:1.2rem; color:#f72331"></i>
+      <% } else { %>
+        —
+      <% } %>
+    </div>
+    <div class="stat-label">Avg Rating</div>
+  </div>
+</div>
+
+<!-- Listings Section -->
+<div>
+  <span class="section-title">
+    <i class="fa-solid fa-house me-2"></i>Listings by @<%= profileUser.username %>
+  </span>
+
+  <% if(userListings.length === 0){ %>
+    <div class="empty-state">
+      <i class="fa-solid fa-house-circle-xmark"></i>
+      <p>No listings yet.</p>
+      <% if(currUser && currUser._id.equals(profileUser._id)){ %>
+        <a href="/listings/new" class="add-listing-btn">+ Add your first listing</a>
+      <% } %>
+    </div>
+  <% } else { %>
+    <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 g-3 mt-1">
+      <% for(let listing of userListings){ %>
+        <div class="col">
+          <div class="listing-card-profile">
+            <a href="/listings/<%= listing._id %>" style="text-decoration:none; color:inherit;">
+              <img src="<%= listing.image.url %>" alt="<%= listing.title %>">
+              <div class="listing-card-body">
+                <div class="listing-card-title"><%= listing.title %></div>
+                <div class="listing-card-location">
+                  <i class="fa-solid fa-location-dot me-1"></i><%= listing.location %>, <%= listing.country %>
+                </div>
+                <div class="listing-card-price">&#8377;<%= listing.price.toLocaleString("en-IN") %>/night</div>
+              </div>
+            </a>
+            <!-- Edit/Delete only shown to the owner -->
+            <% if(currUser && currUser._id.equals(profileUser._id)){ %>
+              <div class="listing-actions">
+                <a href="/listings/<%= listing._id %>/edit" class="btn-edit-small">
+                  <i class="fa-solid fa-pen me-1"></i>Edit
+                </a>
+                <form method="POST" action="/listings/<%= listing._id %>?_method=DELETE" style="margin:0">
+                  <button class="btn-delete-small">
+                    <i class="fa-solid fa-trash me-1"></i>Delete
+                  </button>
+                </form>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  <% } %>
+</div>
