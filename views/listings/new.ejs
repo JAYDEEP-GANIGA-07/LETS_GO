@@ -1,0 +1,227 @@
+<% layout("/layouts/boilerplate") %>
+<style>
+.form-section { background: #fafafa; border: 1px solid #eee; border-radius: 0.8rem; padding: 1.5rem; margin-bottom: 1.5rem; }
+.form-section h5 { font-weight: 700; margin-bottom: 1rem; font-size: 1rem; }
+.amenity-check label { font-size: 0.85rem; }
+.photo-preview-grid { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+.photo-preview-grid img { width: 80px; height: 60px; object-fit: cover; border-radius: 0.4rem; }
+</style>
+
+<div class="row mt-3">
+  <div class="col-lg-8 offset-lg-2">
+    <h3 class="mb-1">Create a New Listing</h3>
+    <p class="text-muted mb-3">Fill in the details about your space. The more you share, the more bookings you'll get!</p>
+
+    <form method="POST" action="/listings" novalidate class="needs-validation" enctype="multipart/form-data">
+
+      <!-- ─── Basic info ─────────────────────────────── -->
+      <div class="form-section">
+        <h5>📌 Basic Information</h5>
+        <div class="mb-3">
+          <label class="form-label">Title <span class="text-danger">*</span></label>
+          <input name="listing[title]" type="text" class="form-control" placeholder="e.g. Cozy Beachfront Cottage" required>
+          <div class="invalid-feedback">Please enter a title.</div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Country <span class="text-danger">*</span></label>
+            <input name="listing[country]" type="text" class="form-control" placeholder="e.g. India" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">City / Location <span class="text-danger">*</span></label>
+            <input name="listing[location]" type="text" class="form-control" placeholder="e.g. Goa" required>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Category</label>
+          <select name="listing[category]" class="form-select">
+            <option value="trending">Trending</option>
+            <option value="rooms">Rooms</option>
+            <option value="iconic-city">Iconic City</option>
+            <option value="mountains">Mountains</option>
+            <option value="castles">Castles</option>
+            <option value="pools">Amazing Pools</option>
+            <option value="camping">Camping</option>
+            <option value="farms">Farms</option>
+            <option value="arctic">Arctic</option>
+            <option value="domes">Domes</option>
+            <option value="boats">Boats</option>
+            <option value="beach">Beach</option>
+            <option value="desert">Desert</option>
+            <option value="luxury">Luxury</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ─── Description sections (NEW) ────────────── -->
+      <div class="form-section">
+        <h5>📝 About Your Space</h5>
+        <p class="text-muted" style="font-size:0.85rem">Give guests a clear picture of what your space is like.</p>
+        <div class="mb-3">
+          <label class="form-label">About this space <span class="text-danger">*</span></label>
+          <textarea name="listing[description][aboutSpace]" class="form-control" rows="3"
+                    placeholder="What makes your place special? Why will guests love it?" required></textarea>
+          <div class="invalid-feedback">Please describe your space.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">The space</label>
+          <textarea name="listing[description][theSpace]" class="form-control" rows="2"
+                    placeholder="Describe the rooms, layout, and features..."></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Guest access</label>
+          <textarea name="listing[description][guestAccess]" class="form-control" rows="2"
+                    placeholder="What areas can guests access? Entire home? Shared areas?"></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">The neighborhood</label>
+          <textarea name="listing[description][neighborhood]" class="form-control" rows="2"
+                    placeholder="What's nearby? Restaurants, attractions, transport?"></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Other things to note</label>
+          <textarea name="listing[description][otherThings]" class="form-control" rows="2"
+                    placeholder="Stairs, noise, parking instructions..."></textarea>
+        </div>
+      </div>
+
+      <!-- ─── Pricing & Capacity (NEW) ──────────────── -->
+      <div class="form-section">
+        <h5>💰 Pricing & Capacity</h5>
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <label class="form-label">Price per night (₹) <span class="text-danger">*</span></label>
+            <input name="listing[price]" type="number" class="form-control" placeholder="2000" min="0" required>
+          </div>
+          <div class="col-md-2 mb-3">
+            <label class="form-label">Max guests</label>
+            <input name="listing[maxGuests]" type="number" class="form-control" value="2" min="1" max="20">
+          </div>
+          <div class="col-md-2 mb-3">
+            <label class="form-label">Bedrooms</label>
+            <input name="listing[bedrooms]" type="number" class="form-control" value="1" min="0" max="20">
+          </div>
+          <div class="col-md-2 mb-3">
+            <label class="form-label">Beds</label>
+            <input name="listing[beds]" type="number" class="form-control" value="1" min="1" max="20">
+          </div>
+          <div class="col-md-2 mb-3">
+            <label class="form-label">Bathrooms</label>
+            <input name="listing[bathrooms]" type="number" class="form-control" value="1" min="0" max="10" step="0.5">
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── Photos (NEW multi-upload) ─────────────── -->
+      <div class="form-section">
+        <h5>📷 Photos</h5>
+        <p class="text-muted" style="font-size:0.85rem">Upload up to 10 photos. The first one will be your cover photo.</p>
+        <input name="listing[images]" type="file" class="form-control" accept="image/*" multiple required>
+        <div class="photo-preview-grid" id="photoPreview"></div>
+      </div>
+
+      <!-- ─── Amenities (NEW) ────────────────────────── -->
+      <div class="form-section">
+        <h5>✨ Amenities</h5>
+        <div class="row amenity-check">
+          <% const amenities = [
+            {val:"wifi",              label:"WiFi"},
+            {val:"ac",                label:"Air conditioning"},
+            {val:"kitchen",           label:"Kitchen"},
+            {val:"parking",           label:"Free parking"},
+            {val:"pool",              label:"Pool"},
+            {val:"tv",                label:"TV"},
+            {val:"washing-machine",   label:"Washing machine"},
+            {val:"gym",               label:"Gym"},
+            {val:"pet-friendly",      label:"Pets allowed"},
+            {val:"smoke-alarm",       label:"Smoke alarm"},
+            {val:"first-aid",         label:"First aid kit"},
+            {val:"fire-extinguisher", label:"Fire extinguisher"},
+            {val:"workspace",         label:"Dedicated workspace"},
+            {val:"hot-tub",           label:"Hot tub"},
+            {val:"bbq",               label:"BBQ grill"},
+          ]; %>
+          <% for (const a of amenities) { %>
+          <div class="col-md-4 col-6 mb-2">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="listing[amenities]" value="<%= a.val %>" id="am-<%= a.val %>">
+              <label class="form-check-label" for="am-<%= a.val %>"><%= a.label %></label>
+            </div>
+          </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- ─── House Rules (NEW) ──────────────────────── -->
+      <div class="form-section">
+        <h5>📋 House Rules</h5>
+        <div class="row">
+          <div class="col-md-3 mb-3">
+            <label class="form-label">Check-in time</label>
+            <input type="time" name="listing[houseRules][checkInTime]" class="form-control" value="15:00">
+          </div>
+          <div class="col-md-3 mb-3">
+            <label class="form-label">Checkout time</label>
+            <input type="time" name="listing[houseRules][checkOutTime]" class="form-control" value="11:00">
+          </div>
+          <div class="col-md-2 mb-3 d-flex align-items-end">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="listing[houseRules][smokingAllowed]" id="smoking">
+              <label class="form-check-label" for="smoking">Smoking OK</label>
+            </div>
+          </div>
+          <div class="col-md-2 mb-3 d-flex align-items-end">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="listing[houseRules][petsAllowed]" id="pets">
+              <label class="form-check-label" for="pets">Pets OK</label>
+            </div>
+          </div>
+          <div class="col-md-2 mb-3 d-flex align-items-end">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="listing[houseRules][partiesAllowed]" id="parties">
+              <label class="form-check-label" for="parties">Events OK</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── Cancellation Policy (NEW) ─────────────── -->
+      <div class="form-section">
+        <h5>🛡️ Cancellation Policy</h5>
+        <div class="row">
+          <% const policies = [
+            {val:"flexible", label:"Flexible", desc:"Full refund if cancelled 24h+ before check-in"},
+            {val:"moderate", label:"Moderate", desc:"Full refund if 5+ days before. 50% within 5 days."},
+            {val:"strict",   label:"Strict",   desc:"50% refund if 7+ days before. No refund after that."},
+          ]; %>
+          <% for (const p of policies) { %>
+          <div class="col-md-4 mb-2">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="listing[cancellationPolicy]"
+                     value="<%= p.val %>" id="pol-<%= p.val %>" <%= p.val==='moderate'?'checked':'' %>>
+              <label class="form-check-label" for="pol-<%= p.val %>">
+                <b><%= p.label %></b><br><small class="text-muted"><%= p.desc %></small>
+              </label>
+            </div>
+          </div>
+          <% } %>
+        </div>
+      </div>
+
+      <button class="btn btn-dark btn-lg mb-4">Create Listing</button>
+    </form>
+  </div>
+</div>
+
+<script>
+// Photo preview before upload
+document.querySelector('input[type="file"]').addEventListener("change", function() {
+  const preview = document.getElementById("photoPreview");
+  preview.innerHTML = "";
+  for (const file of this.files) {
+    const img = document.createElement("img");
+    img.src = URL.createObjectURL(file);
+    preview.appendChild(img);
+  }
+});
+</script>

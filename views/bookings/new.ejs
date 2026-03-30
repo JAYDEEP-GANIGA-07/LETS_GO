@@ -1,0 +1,100 @@
+<% layout("/layouts/boilerplate") %>
+<style>
+.booking-form-card {
+  max-width: 560px; margin: 2rem auto;
+  border: 1px solid #ddd; border-radius: 1rem;
+  padding: 2rem; box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+.listing-thumb { display: flex; gap: 1rem; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #eee; }
+.listing-thumb img { width: 80px; height: 80px; border-radius: 0.6rem; object-fit: cover; }
+.price-breakdown { font-size: 0.88rem; }
+.price-breakdown .row-item { display: flex; justify-content: space-between; padding: 0.3rem 0; border-bottom: 1px solid #f5f5f5; }
+.price-breakdown .total-row { display: flex; justify-content: space-between; font-weight: 700; margin-top: 0.5rem; }
+.book-btn { width: 100%; padding: 0.75rem; background: #f72331; color: #fff; border: none; border-radius: 0.6rem; font-size: 1rem; font-weight: 600; margin-top: 1rem; cursor: pointer; }
+.book-btn:hover { background: #d81c29; }
+#breakdown { display: none; }
+</style>
+
+<!-- NEW FEATURE: Booking form page — this page did not exist before.
+     It shows listing info, a date picker, guest selector, and live pricing.
+     On submit it creates a Booking document and initiates Razorpay payment. -->
+<div class="booking-form-card">
+  <h4 class="mb-3">Confirm your booking</h4>
+
+  <div class="listing-thumb">
+    <img src="<%= listing.primaryImage %>" alt="<%= listing.title %>">
+    <div>
+      <div style="font-weight:700"><%= listing.title %></div>
+      <div style="font-size:0.85rem;color:#777"><%= listing.location %>, <%= listing.country %></div>
+      <div style="font-size:0.9rem"><b>₹<%= listing.price.toLocaleString("en-IN") %></b>/night</div>
+    </div>
+  </div>
+
+  <form action="/bookings" method="POST" id="bookForm">
+    <input type="hidden" name="listingId" value="<%= listing._id %>">
+
+    <div class="row mb-3">
+      <div class="col">
+        <label class="form-label fw-bold" style="font-size:0.8rem;letter-spacing:0.05em">CHECK-IN</label>
+        <input type="date" name="booking[checkIn]" id="checkIn" class="form-control" required
+               min="<%= new Date().toISOString().split('T')[0] %>">
+      </div>
+      <div class="col">
+        <label class="form-label fw-bold" style="font-size:0.8rem;letter-spacing:0.05em">CHECKOUT</label>
+        <input type="date" name="booking[checkOut]" id="checkOut" class="form-control" required>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label fw-bold" style="font-size:0.8rem;letter-spacing:0.05em">GUESTS</label>
+      <select name="booking[guests]" class="form-control">
+        <% for (let i = 1; i <= (listing.maxGuests || 1); i++) { %>
+        <option value="<%= i %>"><%= i %> guest<%= i > 1 ? 's' : '' %></option>
+        <% } %>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" style="font-size:0.88rem">Special requests (optional)</label>
+      <textarea name="booking[specialRequests]" class="form-control" rows="2" placeholder="Any special requests for the host..."></textarea>
+    </div>
+
+    <!-- Live pricing breakdown -->
+    <div id="breakdown" class="price-breakdown mb-2">
+      <div class="row-item"><span id="nightsLabel"></span><span id="subtotalVal"></span></div>
+      <div class="row-item"><span>WanderLust service fee (5%)</span><span id="feeVal"></span></div>
+      <div class="row-item"><span>GST (18%)</span><span id="gstVal"></span></div>
+      <div class="total-row"><span>Total</span><span id="totalVal"></span></div>
+    </div>
+
+    <button type="submit" class="book-btn">Confirm & Pay</button>
+    <p style="text-align:center;font-size:0.78rem;color:#999;margin-top:0.5rem">You will be redirected to payment after confirming.</p>
+  </form>
+</div>
+
+<script>
+const nightly = <%= listing.price %>;
+const ci = document.getElementById("checkIn");
+const co = document.getElementById("checkOut");
+const bd = document.getElementById("breakdown");
+
+function update() {
+  if (!ci.value || !co.value) { bd.style.display="none"; return; }
+  const d1 = new Date(ci.value), d2 = new Date(co.value);
+  if (d2 <= d1) { bd.style.display="none"; return; }
+  const nights = Math.round((d2-d1)/86400000);
+  const sub = nightly * nights;
+  const fee = Math.round(sub*0.05);
+  const gst = Math.round(sub*0.18);
+  const tot = sub+fee+gst;
+  document.getElementById("nightsLabel").textContent  = `₹${nightly.toLocaleString("en-IN")} × ${nights} night${nights>1?'s':''}`;
+  document.getElementById("subtotalVal").textContent  = `₹${sub.toLocaleString("en-IN")}`;
+  document.getElementById("feeVal").textContent       = `₹${fee.toLocaleString("en-IN")}`;
+  document.getElementById("gstVal").textContent       = `₹${gst.toLocaleString("en-IN")}`;
+  document.getElementById("totalVal").textContent     = `₹${tot.toLocaleString("en-IN")}`;
+  bd.style.display="block";
+  co.min = new Date(d1.getTime()+86400000).toISOString().split("T")[0];
+}
+ci.addEventListener("change", update);
+co.addEventListener("change", update);
+</script>

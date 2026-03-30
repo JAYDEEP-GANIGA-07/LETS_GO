@@ -1,0 +1,176 @@
+<footer class="wl-footer">
+  <div class="wl-footer-top">
+
+    <div class="wl-footer-brand">
+      <span class="wl-logo"><i class="fa-regular fa-compass"></i> WanderLust</span>
+      <p class="wl-tagline">Find your perfect place to stay, anywhere in the world.</p>
+      <div class="wl-socials">
+        <a href="#" aria-label="Facebook"><i class="fa-brands fa-square-facebook"></i></a>
+        <a href="#" aria-label="Instagram"><i class="fa-brands fa-square-instagram"></i></a>
+        <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
+        <a href="#" aria-label="Twitter"><i class="fa-brands fa-square-x-twitter"></i></a>
+      </div>
+    </div>
+
+    <div class="wl-footer-links">
+      <div class="wl-footer-col">
+        <h6>Explore</h6>
+        <a href="/listings">All Listings</a>
+        <a href="/listings/new">Add Your Home</a>
+        <a href="/listings?search=mountains">Mountains</a>
+        <a href="/listings?search=beach">Beach</a>
+      </div>
+      <div class="wl-footer-col">
+        <h6>Account</h6>
+        <a href="/signup">Sign Up</a>
+        <a href="/login">Log In</a>
+        <a href="/logout">Log Out</a>
+      </div>
+      <div class="wl-footer-col">
+        <h6>Company</h6>
+        <a href="#">About Us</a>
+        <a href="#">Careers</a>
+        <a href="#">Press</a>
+        <a href="#">Contact</a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="wl-footer-bottom">
+    <span>&copy; <%= new Date().getFullYear() %> WanderLust Pvt. Ltd. All rights reserved.</span>
+    <div class="wl-footer-legal">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Sitemap</a>
+    </div>
+  </div>
+</footer>
+
+<style>
+.wl-footer {
+  background-color: #222;
+  color: #ccc;
+  margin-top: 4rem;
+  padding: 3rem 2rem 1.5rem;
+}
+
+.wl-footer-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3rem;
+  justify-content: space-between;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #444;
+}
+
+.wl-footer-brand {
+  max-width: 280px;
+}
+
+.wl-logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.wl-logo i {
+  color: #f72331;
+}
+
+.wl-tagline {
+  margin-top: 0.8rem;
+  font-size: 0.88rem;
+  color: #aaa;
+  line-height: 1.5;
+}
+
+.wl-socials {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 1.2rem;
+}
+
+.wl-socials a {
+  color: #aaa;
+  font-size: 1.5rem;
+  transition: color 0.2s;
+}
+
+.wl-socials a:hover {
+  color: #f72331;
+}
+
+.wl-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3rem;
+}
+
+.wl-footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 100px;
+}
+
+.wl-footer-col h6 {
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.3rem;
+}
+
+.wl-footer-col a {
+  color: #aaa;
+  text-decoration: none;
+  font-size: 0.88rem;
+  transition: color 0.2s;
+}
+
+.wl-footer-col a:hover {
+  color: #f72331;
+}
+
+.wl-footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  font-size: 0.82rem;
+  color: #777;
+}
+
+.wl-footer-legal {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.wl-footer-legal a {
+  color: #777;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.wl-footer-legal a:hover {
+  color: #f72331;
+}
+
+@media (max-width: 576px) {
+  .wl-footer-top {
+    flex-direction: column;
+    gap: 2rem;
+  }
+  .wl-footer-bottom {
+    flex-direction: column;
+    text-align: center;
+  }
+  .wl-footer-legal {
+    justify-content: center;
+  }
+}
+</style>

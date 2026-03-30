@@ -1,0 +1,19 @@
+<% layout("/layouts/boilerplate") %>
+<style>
+.error-page {
+  text-align: center; padding: 5rem 1rem;
+}
+.error-code {
+  font-size: 5rem; font-weight: 900; color: #f72331; line-height: 1;
+}
+.error-msg {
+  font-size: 1.2rem; color: #444; margin: 1rem 0 2rem;
+}
+</style>
+<div class="error-page">
+  <div class="error-code"><%= err.statusCode || 500 %></div>
+  <div class="error-msg"><%= err.message || "Something went wrong!" %></div>
+  <a href="/listings" class="btn btn-dark btn-lg">
+    <i class="fa-solid fa-compass me-2"></i>Back to listings
+  </a>
+</div>

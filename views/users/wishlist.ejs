@@ -1,0 +1,30 @@
+<% layout("/layouts/boilerplate") %>
+<style>
+.wl-card img { height: 14rem; object-fit: cover; border-radius: 0.7rem; width: 100%; }
+.wl-card { text-decoration: none; color: inherit; }
+.wl-card:hover .wl-title { text-decoration: underline; }
+.wl-title { font-weight: 700; font-size: 0.95rem; margin-top: 0.4rem; }
+</style>
+<!-- NEW FEATURE: Wishlist page showing all saved listings. Did not exist before. -->
+<h4 class="mt-3 mb-1">My Wishlist ❤️</h4>
+<p class="text-muted mb-3" style="font-size:0.9rem">Listings you've saved for later.</p>
+<% if (!listings || listings.length === 0) { %>
+  <div style="text-align:center;padding:4rem;color:#777">
+    <i class="fa-regular fa-heart" style="font-size:3rem"></i>
+    <p class="mt-3">You haven't saved any listings yet.</p>
+    <a href="/listings" class="btn btn-dark">Explore listings</a>
+  </div>
+<% } else { %>
+<div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 g-3">
+  <% for (const listing of listings) { %>
+  <div class="col">
+    <a href="/listings/<%= listing._id %>" class="wl-card d-block">
+      <img src="<%= listing.primaryImage %>" alt="<%= listing.title %>">
+      <div class="wl-title"><%= listing.title %></div>
+      <div style="font-size:0.82rem;color:#777"><%= listing.location %>, <%= listing.country %></div>
+      <div style="font-size:0.88rem"><b>₹<%= listing.price.toLocaleString("en-IN") %></b>/night</div>
+    </a>
+  </div>
+  <% } %>
+</div>
+<% } %>

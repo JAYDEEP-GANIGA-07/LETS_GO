@@ -1,0 +1,77 @@
+<% layout("/layouts/boilerplate") %>
+<style>
+.receipt-card {
+  max-width: 600px; margin: 2rem auto;
+  border: 1px solid #ddd; border-radius: 1rem;
+  padding: 2rem; box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+.receipt-header { text-align: center; margin-bottom: 1.5rem; }
+.receipt-header .check-icon { font-size: 3rem; color: #198754; }
+.conf-code { font-family: monospace; font-size: 1.4rem; font-weight:700; background:#f8f9fa; padding:0.3rem 1rem; border-radius:0.4rem; }
+.receipt-divider { border: none; border-top: 1px dashed #ddd; margin: 1.2rem 0; }
+.receipt-row { display: flex; justify-content: space-between; padding: 0.3rem 0; font-size: 0.9rem; }
+.receipt-row.total { font-weight: 700; font-size: 1rem; border-top: 1px solid #ddd; margin-top: 0.5rem; padding-top: 0.6rem; }
+.status-badge { display: inline-flex; align-items:center; gap:0.4rem; padding:0.3rem 0.9rem; border-radius:2rem; font-size:0.82rem; font-weight:600; }
+.status-confirmed { background:#d4edda; color:#155724; }
+.status-pending   { background:#fff3cd; color:#856404; }
+.status-cancelled { background:#f8d7da; color:#721c24; }
+</style>
+
+<!-- NEW FEATURE: Booking receipt page — shows confirmation code, dates,
+     pricing breakdown, and payment status. Did not exist at all before. -->
+<div class="receipt-card">
+  <div class="receipt-header">
+    <% if (booking.status === 'confirmed') { %>
+      <div class="check-icon">✅</div>
+      <h4 class="mt-2">Booking Confirmed!</h4>
+    <% } else if (booking.status === 'cancelled') { %>
+      <div style="font-size:3rem">❌</div>
+      <h4 class="mt-2">Booking Cancelled</h4>
+    <% } else { %>
+      <div style="font-size:3rem">⏳</div>
+      <h4 class="mt-2">Payment Pending</h4>
+    <% } %>
+
+    <div class="mt-2">Confirmation code: <span class="conf-code"><%= booking.confirmationCode %></span></div>
+    <div class="mt-1">
+      <span class="status-badge status-<%= booking.status %>">
+        <%= booking.status.charAt(0).toUpperCase() + booking.status.slice(1) %>
+      </span>
+    </div>
+  </div>
+
+  <hr class="receipt-divider">
+
+  <div style="font-weight:700;margin-bottom:0.5rem"><%= booking.listing.title %></div>
+  <div style="font-size:0.88rem;color:#777"><%= booking.listing.location %>, <%= booking.listing.country %></div>
+
+  <hr class="receipt-divider">
+
+  <div class="receipt-row"><span>Check-in</span><span><b><%= new Date(booking.checkIn).toDateString() %></b></span></div>
+  <div class="receipt-row"><span>Checkout</span><span><b><%= new Date(booking.checkOut).toDateString() %></b></span></div>
+  <div class="receipt-row"><span>Guests</span><span><%= booking.guests %></span></div>
+
+  <hr class="receipt-divider">
+
+  <div class="receipt-row"><span>₹<%= booking.basePricePerNight.toLocaleString("en-IN") %> × <%= booking.nights %> nights</span><span>₹<%= booking.subtotal.toLocaleString("en-IN") %></span></div>
+  <div class="receipt-row"><span>Service fee (5%)</span><span>₹<%= booking.serviceFee.toLocaleString("en-IN") %></span></div>
+  <div class="receipt-row"><span>GST (18%)</span><span>₹<%= booking.gst.toLocaleString("en-IN") %></span></div>
+  <div class="receipt-row total"><span>Total paid</span><span>₹<%= booking.totalAmount.toLocaleString("en-IN") %></span></div>
+
+  <% if (booking.specialRequests) { %>
+  <hr class="receipt-divider">
+  <div style="font-size:0.85rem;color:#555"><b>Special requests:</b> <%= booking.specialRequests %></div>
+  <% } %>
+
+  <hr class="receipt-divider">
+
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="/listings/<%= booking.listing._id %>" class="btn btn-outline-dark btn-sm">View listing</a>
+    <a href="/bookings" class="btn btn-outline-secondary btn-sm">All my bookings</a>
+    <% if (booking.status === 'confirmed') { %>
+    <form action="/bookings/<%= booking._id %>/cancel" method="POST" style="display:inline">
+      <button class="btn btn-outline-danger btn-sm" onclick="return confirm('Cancel this booking?')">Cancel booking</button>
+    </form>
+    <% } %>
+  </div>
+</div>

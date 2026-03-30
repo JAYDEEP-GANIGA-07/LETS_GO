@@ -1,0 +1,159 @@
+<% layout("/layouts/boilerplate") %>
+<style>
+.bookings-header { padding: 2rem 0 1rem; border-bottom: 1px solid #ebebeb; margin-bottom: 1.5rem; }
+.section-label { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #888; margin-bottom: 0.8rem; }
+.booking-item {
+  border: 1.5px solid #ebebeb; border-radius: 1rem; padding: 1.3rem;
+  margin-bottom: 0.9rem; display: flex; gap: 1.2rem; align-items: center;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  text-decoration: none; color: inherit;
+  background: #fff;
+}
+.booking-item:hover {
+  border-color: #bbb; box-shadow: 0 4px 18px rgba(0,0,0,0.09);
+  transform: translateY(-2px);
+}
+.booking-item.cancelled { opacity: 0.55; }
+.booking-thumb {
+  width: 90px; height: 72px; object-fit: cover; border-radius: 0.7rem;
+  flex-shrink: 0;
+}
+.booking-thumb-placeholder {
+  width: 90px; height: 72px; background: #f0f0f0; border-radius: 0.7rem;
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  color: #ccc; font-size: 1.5rem;
+}
+.booking-info { flex: 1; min-width: 0; }
+.booking-title { font-weight: 700; font-size: 0.97rem; margin-bottom: 0.15rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.booking-dates { font-size: 0.84rem; color: #666; }
+.booking-nights { font-size: 0.82rem; color: #999; margin-top: 0.1rem; }
+.booking-right { text-align: right; flex-shrink: 0; }
+.booking-amount { font-size: 1rem; font-weight: 700; }
+.status-badge {
+  display: inline-block; padding: 0.2rem 0.75rem; border-radius: 2rem;
+  font-size: 0.78rem; font-weight: 700; margin-top: 0.3rem;
+}
+.status-confirmed { background: #d4edda; color: #155724; }
+.status-pending   { background: #fff3cd; color: #856404; }
+.status-cancelled { background: #fde8e8; color: #721c24; }
+
+.empty-state { text-align: center; padding: 5rem 1rem; color: #aaa; }
+.empty-state i { font-size: 3.5rem; display: block; margin-bottom: 1rem; }
+
+@media (max-width: 576px) {
+  .booking-item { flex-wrap: wrap; }
+  .booking-thumb, .booking-thumb-placeholder { width: 100%; height: 160px; }
+  .booking-right { text-align: left; width: 100%; }
+}
+</style>
+
+<div class="bookings-header">
+  <h3 class="mb-0">My Bookings</h3>
+  <p class="text-muted mt-1" style="font-size:0.9rem">All your upcoming and past stays in one place.</p>
+</div>
+
+<%
+  const today = new Date();
+  const upcoming = bookings.filter(b => b.status !== 'cancelled' && new Date(b.checkIn) >= today);
+  const past     = bookings.filter(b => b.status !== 'cancelled' && new Date(b.checkIn) <  today);
+  const cancelled = bookings.filter(b => b.status === 'cancelled');
+%>
+
+<% if (bookings.length === 0) { %>
+  <div class="empty-state">
+    <i class="fa-regular fa-calendar-check"></i>
+    <h5>No bookings yet</h5>
+    <p>When you book a stay, it will appear here.</p>
+    <a href="/listings" class="btn btn-dark mt-2">Explore listings</a>
+  </div>
+<% } else { %>
+
+  <%/* ── UPCOMING ──*/%>
+  <% if (upcoming.length > 0) { %>
+  <div class="section-label">Upcoming stays (<%= upcoming.length %>)</div>
+  <% for (const b of upcoming) { %>
+    <a href="/bookings/<%= b._id %>" class="booking-item d-flex">
+      <% if (b.listing && b.listing.primaryImage) { %>
+        <img class="booking-thumb" src="<%= b.listing.primaryImage %>" alt="">
+      <% } else { %>
+        <div class="booking-thumb-placeholder"><i class="fa-solid fa-image"></i></div>
+      <% } %>
+      <div class="booking-info">
+        <div class="booking-title"><%= b.listing ? b.listing.title : 'Listing removed' %></div>
+        <div class="booking-dates">
+          <i class="fa-regular fa-calendar me-1"></i>
+          <%= new Date(b.checkIn).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"}) %>
+          &rarr;
+          <%= new Date(b.checkOut).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"}) %>
+        </div>
+        <div class="booking-nights">
+          <%= b.nights %> night<%= b.nights !== 1 ? 's' : '' %> &bull;
+          <%= b.guests %> guest<%= b.guests !== 1 ? 's' : '' %> &bull;
+          Code: <b><%= b.confirmationCode %></b>
+        </div>
+      </div>
+      <div class="booking-right">
+        <div class="booking-amount">₹<%= b.totalAmount.toLocaleString("en-IN") %></div>
+        <div><span class="status-badge status-<%= b.status %>"><%= b.status.charAt(0).toUpperCase() + b.status.slice(1) %></span></div>
+      </div>
+    </a>
+  <% } %>
+  <% } %>
+
+  <%/* ── PAST ──*/%>
+  <% if (past.length > 0) { %>
+  <div class="section-label mt-4">Past stays (<%= past.length %>)</div>
+  <% for (const b of past) { %>
+    <a href="/bookings/<%= b._id %>" class="booking-item d-flex">
+      <% if (b.listing && b.listing.primaryImage) { %>
+        <img class="booking-thumb" src="<%= b.listing.primaryImage %>" alt="">
+      <% } else { %>
+        <div class="booking-thumb-placeholder"><i class="fa-solid fa-image"></i></div>
+      <% } %>
+      <div class="booking-info">
+        <div class="booking-title"><%= b.listing ? b.listing.title : 'Listing removed' %></div>
+        <div class="booking-dates">
+          <%= new Date(b.checkIn).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"}) %>
+          &rarr;
+          <%= new Date(b.checkOut).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"}) %>
+        </div>
+        <div class="booking-nights">
+          <%= b.nights %> night<%= b.nights !== 1 ? 's' : '' %> &bull; <%= b.guests %> guest<%= b.guests !== 1 ? 's' : '' %>
+        </div>
+      </div>
+      <div class="booking-right">
+        <div class="booking-amount">₹<%= b.totalAmount.toLocaleString("en-IN") %></div>
+        <div><span class="status-badge status-<%= b.status %>"><%= b.status.charAt(0).toUpperCase() + b.status.slice(1) %></span></div>
+      </div>
+    </a>
+  <% } %>
+  <% } %>
+
+  <%/* ── CANCELLED ──*/%>
+  <% if (cancelled.length > 0) { %>
+  <div class="section-label mt-4" style="color:#dc3545">Cancelled (<%= cancelled.length %>)</div>
+  <% for (const b of cancelled) { %>
+    <a href="/bookings/<%= b._id %>" class="booking-item d-flex cancelled">
+      <% if (b.listing && b.listing.primaryImage) { %>
+        <img class="booking-thumb" src="<%= b.listing.primaryImage %>" alt="">
+      <% } else { %>
+        <div class="booking-thumb-placeholder"><i class="fa-solid fa-image"></i></div>
+      <% } %>
+      <div class="booking-info">
+        <div class="booking-title"><%= b.listing ? b.listing.title : 'Listing removed' %></div>
+        <div class="booking-dates">
+          <%= new Date(b.checkIn).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"}) %>
+          &rarr;
+          <%= new Date(b.checkOut).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"}) %>
+        </div>
+      </div>
+      <div class="booking-right">
+        <div class="booking-amount" style="color:#aaa">₹<%= b.totalAmount.toLocaleString("en-IN") %></div>
+        <div><span class="status-badge status-cancelled">Cancelled</span></div>
+      </div>
+    </a>
+  <% } %>
+  <% } %>
+
+<% } %>

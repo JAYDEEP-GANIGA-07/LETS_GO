@@ -1,0 +1,524 @@
+<% layout("/layouts/boilerplate") %>
+
+<style>
+/* ─── Full-bleed hero gallery ─────────────────────────────────── */
+.show-gallery {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: 200px 200px;
+  gap: 0.5rem;
+  border-radius: 1rem;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+.show-gallery .gallery-main {
+  grid-row: 1 / 3;
+  overflow: hidden;
+}
+.show-gallery img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s;
+}
+.show-gallery img:hover { transform: scale(1.04); }
+/* Fewer than 3 images: single full-width */
+.single-img { border-radius: 1rem; overflow: hidden; max-height: 420px; margin-bottom: 2rem; }
+.single-img img { width: 100%; height: 420px; object-fit: cover; }
+
+/* ─── Layout: 2-col (main left, sticky sidebar right) ─────────── */
+.show-layout { display: grid; grid-template-columns: 1fr 380px; gap: 2rem; }
+@media (max-width: 900px) { .show-layout { grid-template-columns: 1fr; } }
+
+/* ─── Listing header ─────────────────────────────────────────── */
+.show-title { font-size: 1.6rem; font-weight: 700; }
+.show-meta  { font-size: 0.92rem; color: #555; margin: 0.3rem 0 1rem; }
+.show-host  { display: flex; align-items: center; gap: 0.8rem; margin: 1.5rem 0; }
+.host-avatar {
+  width: 48px; height: 48px; border-radius: 50%; object-fit: cover;
+  background: #f72331; display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; font-weight: 700; color: #fff;
+}
+.host-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.show-divider { border: none; border-top: 1px solid #eee; margin: 1.5rem 0; }
+
+/* ─── Amenities grid ─────────────────────────────────────────── */
+.amenities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.5rem;
+}
+.amenity-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #eee;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+}
+.amenity-item i { font-size: 1.1rem; color: #444; min-width: 20px; }
+
+/* ─── House rules ────────────────────────────────────────────── */
+.rules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+.rule-item { font-size: 0.87rem; display: flex; align-items: center; gap: 0.5rem; }
+.rule-item i { color: #555; }
+
+/* ─── Cancellation policy badge ─────────────────────────────── */
+.policy-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 2rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.policy-flexible { background: #d4edda; color: #155724; }
+.policy-moderate  { background: #fff3cd; color: #856404; }
+.policy-strict    { background: #f8d7da; color: #721c24; }
+
+/* ─── NEW FEATURE: Sticky booking sidebar ───────────────────── */
+.booking-card {
+  position: sticky;
+  top: 90px;
+  border: 1px solid #ddd;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+  background: #fff;
+}
+.booking-card .price-line { font-size: 1.4rem; font-weight: 700; }
+.booking-card .price-line span { font-size: 0.9rem; font-weight: 400; color: #555; }
+.booking-card .avg-rating { color: #222; font-size: 0.88rem; }
+.date-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.date-row input, .booking-card select { font-size: 0.88rem; }
+.booking-card .booking-break { font-size: 0.85rem; color: #555; margin-top: 0.8rem; }
+.booking-card .booking-break .row-item {
+  display: flex; justify-content: space-between; padding: 0.3rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.booking-card .booking-break .total-row {
+  display: flex; justify-content: space-between; font-weight: 700; margin-top: 0.5rem; font-size: 0.95rem;
+}
+.booking-btn {
+  width: 100%; padding: 0.75rem; background: #f72331; color: #fff;
+  border: none; border-radius: 0.6rem; font-size: 1rem; font-weight: 600;
+  margin-top: 1rem; cursor: pointer; transition: background 0.2s;
+}
+.booking-btn:hover { background: #d81c29; }
+#bookingBreakdown { display: none; }
+
+/* ─── NEW FEATURE: Wishlist heart on show page ───────────────── */
+.save-btn {
+  background: none; border: 1px solid #ddd; border-radius: 2rem;
+  padding: 0.4rem 1rem; font-size: 0.88rem; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 0.4rem; margin-left: 1rem;
+}
+.save-btn.saved { color: #f72331; border-color: #f72331; }
+
+/* ─── Reviews ────────────────────────────────────────────────── */
+.review-card {
+  border: 1px solid #eee;
+  border-radius: 0.8rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+.review-author { font-weight: 600; font-size: 0.9rem; }
+.review-date   { font-size: 0.78rem; color: #999; }
+.review-text   { font-size: 0.88rem; margin-top: 0.4rem; }
+
+/* ─── Similar listings ───────────────────────────────────────── */
+.similar-card img { height: 11rem; object-fit: cover; border-radius: 0.6rem; width: 100%; }
+.similar-card { text-decoration: none; color: inherit; }
+.similar-card:hover .sim-title { text-decoration: underline; }
+.sim-title { font-weight: 600; font-size: 0.9rem; margin-top: 0.4rem; }
+.sim-meta  { font-size: 0.8rem; color: #777; }
+</style>
+
+<!-- ════════════════════════ PHOTO GALLERY ════════════════════════════════════ -->
+<!-- NEW FEATURE: Multi-image grid gallery (previously only 1 image was shown) -->
+<% const allImgs = listing.images && listing.images.length > 0 ? listing.images : (listing.image && listing.image.url ? [listing.image] : []); %>
+<% if (allImgs.length >= 3) { %>
+<div class="show-gallery">
+  <div class="gallery-main"><img src="<%= allImgs[0].url %>" alt="photo 1"></div>
+  <div class="gallery-cell"><img src="<%= allImgs[1].url %>" alt="photo 2"></div>
+  <div class="gallery-cell"><img src="<%= allImgs[2].url %>" alt="photo 3"></div>
+  <% if (allImgs[3]) { %><div class="gallery-cell"><img src="<%= allImgs[3].url %>" alt="photo 4"></div><% } %>
+  <% if (allImgs[4]) { %><div class="gallery-cell"><img src="<%= allImgs[4].url %>" alt="photo 5"></div><% } %>
+</div>
+<% } else { %>
+<div class="single-img"><img src="<%= listing.primaryImage %>" alt="<%= listing.title %>"></div>
+<% } %>
+
+<!-- ════════════════════════ TWO-COLUMN LAYOUT ═══════════════════════════════ -->
+<div class="show-layout">
+
+  <!-- ─── LEFT: Listing details ─────────────────────────────────── -->
+  <div>
+    <!-- Header -->
+    <h1 class="show-title">
+      <%= listing.title %>
+      <% if (currUser) { %>
+      <button class="save-btn <%= isSaved ? 'saved' : '' %>" id="saveBtn" data-id="<%= listing._id %>">
+        <i class="<%= isSaved ? 'fa-solid' : 'fa-regular' %> fa-heart" id="saveIcon"></i>
+        <%= isSaved ? 'Saved' : 'Save' %>
+      </button>
+      <% } %>
+    </h1>
+
+    <!-- NEW FEATURE: Location + capacity meta line -->
+    <div class="show-meta">
+      <%= listing.location %>, <%= listing.country %> &bull;
+      <%= listing.maxGuests || 1 %> guest<%= (listing.maxGuests||1) !== 1 ? 's' : '' %> &bull;
+      <%= listing.bedrooms || 1 %> bedroom<%= (listing.bedrooms||1) !== 1 ? 's' : '' %> &bull;
+      <%= listing.beds || 1 %> bed<%= (listing.beds||1) !== 1 ? 's' : '' %> &bull;
+      <%= listing.bathrooms || 1 %> bath<%= (listing.bathrooms||1) !== 1 ? 'rooms' : 'room' %>
+      <% if (listing.reviews && listing.reviews.length > 0) { %>
+        &bull; <i class="fa-solid fa-star" style="color:#f72331"></i>
+        <%= listing.avgRating %> (<%= listing.reviews.length %> reviews)
+      <% } %>
+    </div>
+
+    <hr class="show-divider">
+
+    <!-- NEW FEATURE: Host section with avatar, username, and years hosting -->
+    <div class="show-host">
+      <div class="host-avatar">
+        <% if (listing.owner.profilePhoto && listing.owner.profilePhoto.url) { %>
+          <img src="<%= listing.owner.profilePhoto.url %>" alt="host">
+        <% } else { %>
+          <%= listing.owner.username.charAt(0).toUpperCase() %>
+        <% } %>
+      </div>
+      <div>
+        <div style="font-weight:700">Hosted by <a href="/profile/<%= listing.owner.username %>"><%= listing.owner.username %></a></div>
+        <div style="font-size:0.82rem;color:#777"><%= listing.owner.bio || "WanderLust host" %></div>
+      </div>
+    </div>
+
+    <hr class="show-divider">
+
+    <!-- NEW FEATURE: Structured description sections -->
+    <% if (listing.description && typeof listing.description === 'object') { %>
+      <% if (listing.description.aboutSpace) { %>
+        <h5>About this space</h5>
+        <p style="font-size:0.95rem;line-height:1.7"><%= listing.description.aboutSpace %></p>
+      <% } %>
+      <% if (listing.description.theSpace) { %>
+        <h6 class="mt-3">The space</h6>
+        <p style="font-size:0.9rem;color:#555"><%= listing.description.theSpace %></p>
+      <% } %>
+      <% if (listing.description.guestAccess) { %>
+        <h6 class="mt-3">Guest access</h6>
+        <p style="font-size:0.9rem;color:#555"><%= listing.description.guestAccess %></p>
+      <% } %>
+      <% if (listing.description.neighborhood) { %>
+        <h6 class="mt-3">The neighborhood</h6>
+        <p style="font-size:0.9rem;color:#555"><%= listing.description.neighborhood %></p>
+      <% } %>
+    <% } else if (typeof listing.description === 'string') { %>
+      <p style="font-size:0.95rem;line-height:1.7"><%= listing.description %></p>
+    <% } %>
+
+    <hr class="show-divider">
+
+    <!-- NEW FEATURE: Amenities grid with icons -->
+    <% const amenityMeta = {
+      "wifi":              { icon:"fa-wifi",              label:"WiFi" },
+      "ac":                { icon:"fa-temperature-arrow-down", label:"Air conditioning" },
+      "kitchen":           { icon:"fa-utensils",          label:"Kitchen" },
+      "parking":           { icon:"fa-square-parking",    label:"Free parking" },
+      "pool":              { icon:"fa-person-swimming",   label:"Pool" },
+      "tv":                { icon:"fa-tv",                label:"TV" },
+      "washing-machine":   { icon:"fa-jug-detergent",     label:"Washing machine" },
+      "gym":               { icon:"fa-dumbbell",          label:"Gym" },
+      "pet-friendly":      { icon:"fa-paw",               label:"Pets allowed" },
+      "smoke-alarm":       { icon:"fa-bell",              label:"Smoke alarm" },
+      "first-aid":         { icon:"fa-kit-medical",       label:"First aid kit" },
+      "fire-extinguisher": { icon:"fa-fire-extinguisher", label:"Fire extinguisher" },
+      "workspace":         { icon:"fa-laptop",            label:"Dedicated workspace" },
+      "hot-tub":           { icon:"fa-hot-tub-person",    label:"Hot tub" },
+      "bbq":               { icon:"fa-fire",              label:"BBQ grill" },
+    }; %>
+    <% if (listing.amenities && listing.amenities.length > 0) { %>
+    <h5>What this place offers</h5>
+    <div class="amenities-grid">
+      <% for (const am of listing.amenities) { %>
+      <div class="amenity-item">
+        <i class="fa-solid <%= amenityMeta[am] ? amenityMeta[am].icon : 'fa-check' %>"></i>
+        <%= amenityMeta[am] ? amenityMeta[am].label : am %>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
+
+    <hr class="show-divider">
+
+    <!-- NEW FEATURE: House rules section -->
+    <h5>House rules</h5>
+    <div class="rules-grid">
+      <div class="rule-item"><i class="fa-regular fa-clock"></i> Check-in after <%= listing.houseRules && listing.houseRules.checkInTime ? listing.houseRules.checkInTime : '15:00' %></div>
+      <div class="rule-item"><i class="fa-regular fa-clock"></i> Checkout before <%= listing.houseRules && listing.houseRules.checkOutTime ? listing.houseRules.checkOutTime : '11:00' %></div>
+      <div class="rule-item">
+        <i class="fa-solid fa-smoking<%= (listing.houseRules && listing.houseRules.smokingAllowed) ? '' : '-ban' %>"></i>
+        Smoking <%= (listing.houseRules && listing.houseRules.smokingAllowed) ? 'allowed' : 'not allowed' %>
+      </div>
+      <div class="rule-item">
+        <i class="fa-solid fa-paw"></i>
+        Pets <%= (listing.houseRules && listing.houseRules.petsAllowed) ? 'welcome' : 'not allowed' %>
+      </div>
+      <div class="rule-item">
+        <i class="fa-solid fa-champagne-glasses"></i>
+        Parties/events <%= (listing.houseRules && listing.houseRules.partiesAllowed) ? 'allowed' : 'not allowed' %>
+      </div>
+    </div>
+
+    <hr class="show-divider">
+
+    <!-- NEW FEATURE: Cancellation policy with colour-coded badge -->
+    <h5>Cancellation policy</h5>
+    <%
+      const pol = listing.cancellationPolicy || "moderate";
+      const polData = {
+        flexible: { cls: "policy-flexible", desc: "Full refund if cancelled at least 24 hours before check-in." },
+        moderate: { cls: "policy-moderate",  desc: "Full refund if cancelled 5+ days before check-in. 50% refund within 5 days." },
+        strict:   { cls: "policy-strict",    desc: "50% refund if cancelled 7+ days before check-in. No refund after that." },
+      };
+    %>
+    <span class="policy-badge <%= polData[pol].cls %>">
+      <i class="fa-solid fa-shield-halved"></i> <%= pol.charAt(0).toUpperCase() + pol.slice(1) %>
+    </span>
+    <p style="font-size:0.85rem;color:#555;margin-top:0.5rem"><%= polData[pol].desc %></p>
+
+    <hr class="show-divider">
+
+    <!-- ─── Reviews Section ─────────────────────────────────────── -->
+    <h5>Reviews
+      <% if (listing.reviews && listing.reviews.length > 0) { %>
+        <span style="font-weight:400;font-size:0.9rem;color:#555">
+          &mdash; <i class="fa-solid fa-star" style="color:#f72331"></i> <%= listing.avgRating %> &middot; <%= listing.reviews.length %> reviews
+        </span>
+      <% } %>
+    </h5>
+
+    <div class="row mt-2">
+    <% if (listing.reviews && listing.reviews.length > 0) { %>
+      <% for (let review of listing.reviews) { %>
+        <div class="col-md-6">
+          <div class="review-card">
+            <div class="d-flex align-items-center gap-2">
+              <div style="width:36px;height:36px;border-radius:50%;background:#f72331;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700">
+                <%= review.author.username.charAt(0).toUpperCase() %>
+              </div>
+              <div>
+                <div class="review-author">@<%= review.author.username %></div>
+                <div class="review-date"><%= new Date(review.createdAt).toLocaleDateString("en-IN",{month:"short",year:"numeric"}) %></div>
+              </div>
+            </div>
+            <p class="starability-result mt-2" data-rating="<%= review.rating %>"></p>
+            <p class="review-text"><%= review.comment %></p>
+            <% if (currUser && review.author._id.equals(currUser._id)) { %>
+            <form action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE" method="POST">
+              <button class="btn btn-sm btn-outline-danger mt-1">Delete review</button>
+            </form>
+            <% } %>
+          </div>
+        </div>
+      <% } %>
+    <% } else { %>
+      <p style="color:#777;font-size:0.9rem">No reviews yet. Be the first to review!</p>
+    <% } %>
+    </div>
+
+    <!-- Leave a review form (only for logged-in non-owners) -->
+    <% if (currUser && !listing.owner._id.equals(currUser._id)) { %>
+    <hr class="show-divider">
+    <h5>Leave a Review</h5>
+    <form action="/listings/<%= listing.id %>/reviews" method="POST" novalidate class="needs-validation">
+      <div class="mb-3">
+        <label class="form-label">Rating</label>
+        <fieldset class="starability-slot">
+          <input type="radio" id="no-rate" class="input-no-rate" name="review[rating]" value="1" checked>
+          <input type="radio" id="r1" name="review[rating]" value="1"><label for="r1" title="Terrible">1 star</label>
+          <input type="radio" id="r2" name="review[rating]" value="2"><label for="r2" title="Not good">2 stars</label>
+          <input type="radio" id="r3" name="review[rating]" value="3"><label for="r3" title="Average">3 stars</label>
+          <input type="radio" id="r4" name="review[rating]" value="4"><label for="r4" title="Very good">4 stars</label>
+          <input type="radio" id="r5" name="review[rating]" value="5"><label for="r5" title="Amazing">5 stars</label>
+        </fieldset>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Your comment</label>
+        <textarea name="review[comment]" class="form-control" rows="3" required placeholder="Share your experience..."></textarea>
+        <div class="invalid-feedback">Please add a comment.</div>
+      </div>
+      <button class="btn btn-dark">Submit Review</button>
+    </form>
+    <% } %>
+
+    <!-- Owner buttons -->
+    <% if (currUser && listing.owner._id.equals(currUser._id)) { %>
+    <hr class="show-divider">
+    <div class="d-flex gap-2">
+      <a href="/listings/<%= listing._id %>/edit" class="btn btn-outline-dark">Edit listing</a>
+      <form method="POST" action="/listings/<%= listing._id %>?_method=DELETE">
+        <button class="btn btn-outline-danger">Delete listing</button>
+      </form>
+    </div>
+    <% } %>
+
+    <!-- NEW FEATURE: Report listing button -->
+    <% if (currUser && !listing.owner._id.equals(currUser._id)) { %>
+    <div class="mt-3" style="font-size:0.82rem;color:#999">
+      <form action="/listings/<%= listing._id %>/report" method="POST" style="display:inline">
+        <button class="btn btn-sm btn-link text-danger p-0">🚩 Report this listing</button>
+      </form>
+    </div>
+    <% } %>
+
+    <hr class="show-divider">
+
+    <!-- NEW FEATURE: Similar listings section -->
+    <% if (similarListings && similarListings.length > 0) { %>
+    <h5>Similar listings you might like</h5>
+    <div class="row g-3 mt-1">
+      <% for (let s of similarListings) { %>
+      <div class="col-md-4">
+        <a href="/listings/<%= s._id %>" class="similar-card d-block">
+          <div class="sim-img-wrap"><img src="<%= s.primaryImage %>" alt="<%= s.title %>"></div>
+          <div class="sim-title"><%= s.title %></div>
+          <div class="sim-meta"><%= s.location %></div>
+          <div class="sim-meta"><b>₹<%= s.price.toLocaleString("en-IN") %></b>/night</div>
+        </a>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
+  </div>
+
+  <!-- ─── RIGHT: Sticky booking sidebar ─────────────────────────── -->
+  <!-- NEW FEATURE: Airbnb-style booking widget with date picker,
+       guest selector, real-time pricing breakdown, and "Reserve" button.
+       Previously there was NO booking widget at all. -->
+  <div>
+    <div class="booking-card">
+      <div class="price-line">
+        ₹<%= listing.price.toLocaleString("en-IN") %> <span>/ night</span>
+      </div>
+      <% if (listing.reviews && listing.reviews.length > 0) { %>
+      <div class="avg-rating">
+        <i class="fa-solid fa-star" style="color:#f72331"></i>
+        <%= listing.avgRating %> &middot; <%= listing.reviews.length %> reviews
+      </div>
+      <% } %>
+
+      <% if (currUser && !listing.owner._id.equals(currUser._id)) { %>
+      <form action="/bookings" method="POST" id="bookingForm" class="mt-3">
+        <input type="hidden" name="listingId" value="<%= listing._id %>">
+        <input type="hidden" name="booking[listingId]" value="<%= listing._id %>">
+
+        <div class="date-row mb-2">
+          <div>
+            <label style="font-size:0.75rem;font-weight:700;letter-spacing:0.05em">CHECK-IN</label>
+            <input type="date" name="booking[checkIn]" id="checkIn" class="form-control" required
+                   min="<%= new Date().toISOString().split('T')[0] %>">
+          </div>
+          <div>
+            <label style="font-size:0.75rem;font-weight:700;letter-spacing:0.05em">CHECKOUT</label>
+            <input type="date" name="booking[checkOut]" id="checkOut" class="form-control" required>
+          </div>
+        </div>
+
+        <div class="mb-2">
+          <label style="font-size:0.75rem;font-weight:700;letter-spacing:0.05em">GUESTS</label>
+          <select name="booking[guests]" class="form-control" id="guestSelect">
+            <% for (let i = 1; i <= (listing.maxGuests || 1); i++) { %>
+            <option value="<%= i %>"><%= i %> guest<%= i > 1 ? 's' : '' %></option>
+            <% } %>
+          </select>
+        </div>
+
+        <!-- Pricing breakdown (calculated live by JS) -->
+        <div id="bookingBreakdown" class="booking-break">
+          <div class="row-item"><span id="breakNights"></span><span id="breakSubtotal"></span></div>
+          <div class="row-item"><span>Service fee (5%)</span><span id="breakFee"></span></div>
+          <div class="row-item"><span>GST (18%)</span><span id="breakGst"></span></div>
+          <div class="total-row"><span>Total</span><span id="breakTotal"></span></div>
+        </div>
+
+        <button type="submit" class="booking-btn">Reserve</button>
+        <p style="text-align:center;font-size:0.78rem;color:#777;margin-top:0.5rem">You won't be charged yet</p>
+      </form>
+      <% } else if (!currUser) { %>
+      <a href="/login" class="booking-btn d-block text-center text-decoration-none" style="margin-top:1rem">
+        Log in to book
+      </a>
+      <% } else { %>
+      <p style="margin-top:1rem;font-size:0.88rem;color:#777">
+        <i class="fa-solid fa-circle-info"></i> You own this listing and cannot book it.
+      </p>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Live pricing breakdown calculator ───────────────────────────────────────
+// NEW FEATURE: As the user picks dates, the sidebar shows the live price breakdown
+// (base × nights, service fee 5%, GST 18%) before they hit "Reserve".
+const pricePerNight = <%= listing.price %>;
+const checkInEl  = document.getElementById("checkIn");
+const checkOutEl = document.getElementById("checkOut");
+const breakdown  = document.getElementById("bookingBreakdown");
+
+function calcAndShow() {
+  const ci = new Date(checkInEl.value);
+  const co = new Date(checkOutEl.value);
+  if (!checkInEl.value || !checkOutEl.value || co <= ci) { breakdown.style.display = "none"; return; }
+  const nights   = Math.round((co - ci) / 86400000);
+  const subtotal = pricePerNight * nights;
+  const fee      = Math.round(subtotal * 0.05);
+  const gst      = Math.round(subtotal * 0.18);
+  const total    = subtotal + fee + gst;
+  document.getElementById("breakNights").textContent   = `₹${pricePerNight.toLocaleString("en-IN")} × ${nights} night${nights>1?'s':''}`;
+  document.getElementById("breakSubtotal").textContent = `₹${subtotal.toLocaleString("en-IN")}`;
+  document.getElementById("breakFee").textContent      = `₹${fee.toLocaleString("en-IN")}`;
+  document.getElementById("breakGst").textContent      = `₹${gst.toLocaleString("en-IN")}`;
+  document.getElementById("breakTotal").textContent    = `₹${total.toLocaleString("en-IN")}`;
+  breakdown.style.display = "block";
+  // Enforce min checkout = checkIn + 1
+  checkOutEl.min = new Date(ci.getTime() + 86400000).toISOString().split("T")[0];
+}
+
+if (checkInEl) checkInEl.addEventListener("change", calcAndShow);
+if (checkOutEl) checkOutEl.addEventListener("change", calcAndShow);
+
+// ─── Wishlist save button ─────────────────────────────────────────────────────
+const saveBtn = document.getElementById("saveBtn");
+if (saveBtn) {
+  saveBtn.addEventListener("click", async () => {
+    const id  = saveBtn.dataset.id;
+    const res = await fetch(`/listings/${id}/save`, { method: "POST" });
+    if (res.ok) {
+      const data = await res.json();
+      const icon = document.getElementById("saveIcon");
+      if (data.saved) {
+        icon.className = "fa-solid fa-heart";
+        saveBtn.classList.add("saved");
+        saveBtn.childNodes[1].textContent = " Saved";
+      } else {
+        icon.className = "fa-regular fa-heart";
+        saveBtn.classList.remove("saved");
+        saveBtn.childNodes[1].textContent = " Save";
+      }
+    }
+  });
+}
+</script>

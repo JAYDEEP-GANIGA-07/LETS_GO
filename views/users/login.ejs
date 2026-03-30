@@ -1,0 +1,24 @@
+<% layout("/layouts/boilerplate") %>
+<div class="row justify-content-center mt-5">
+  <div class="col-md-5">
+    <div class="card shadow-sm p-4">
+      <h4 class="mb-1">Welcome back</h4>
+      <p class="text-muted mb-3" style="font-size:0.9rem">Log in to your WanderLust account.</p>
+      <form action="/login" method="POST" novalidate class="needs-validation">
+        <div class="mb-3">
+          <label class="form-label">Username</label>
+          <input type="text" name="username" class="form-control" placeholder="Your username" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control" placeholder="Your password" required>
+        </div>
+        <button class="btn btn-dark w-100">Log In</button>
+      </form>
+      <div class="mt-3 d-flex justify-content-between" style="font-size:0.87rem">
+        <a href="/signup">Create an account</a>
+     
+      </div>
+    </div>
+  </div>
+</div>

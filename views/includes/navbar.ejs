@@ -1,0 +1,110 @@
+<style>
+.search-btn {
+  background-color: #f72331; color: #fff;
+  border-radius: 2rem; padding: 0 1rem;
+  border: none; cursor: pointer; font-size: 0.9rem;
+  display: flex; align-items: center; gap: 0.4rem;
+}
+.search-btn:hover { background-color: #d81c29; color: #fff; }
+.search-inp {
+  border-radius: 2rem; border: 1px solid #ccc;
+  padding: 0.45rem 1.2rem; font-size: 0.9rem; min-width: 200px;
+}
+.search-inp:focus { outline: none; border-color: #222; box-shadow: none; }
+/* Loading bar — shown during cold starts on Render free tier */
+#loading-bar {
+  position: fixed; top: 0; left: 0; height: 3px;
+  background: #f72331; width: 0%; z-index: 9999;
+  transition: width 0.4s ease;
+}
+</style>
+
+<!-- NEW FEATURE: Loading bar shown during cold-start delays on Render free tier -->
+<!-- Animates to 80% immediately so users know something is happening -->
+<div id="loading-bar"></div>
+
+<nav class="navbar navbar-expand-md bg-body-light border-bottom sticky-top">
+  <div class="container-fluid">
+    <!-- Brand -->
+    <a class="navbar-brand fw-bold" href="/listings">
+      <i class="fa-regular fa-compass" style="color:#f72331"></i> WanderLust
+    </a>
+
+    <button class="navbar-toggler" type="button"
+            data-bs-toggle="collapse" data-bs-target="#navbarMain">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarMain">
+
+      <!-- Search bar — NEW FEATURE: preserves current category param so filtering
+           and search work together instead of the category being dropped -->
+      <form class="d-flex mx-auto" role="search" action="/listings" method="GET" id="searchForm">
+        <!-- If user is on a category page, keep it when they search -->
+        <% const currentCategory = typeof category !== 'undefined' ? category : ''; %>
+        <% if (currentCategory) { %>
+          <input type="hidden" name="category" value="<%= currentCategory %>">
+        <% } %>
+        <input class="form-control me-2 search-inp" type="search" name="search"
+               placeholder="Search destinations..."
+               value="<%= typeof search !== 'undefined' ? search : '' %>">
+        <button class="search-btn" type="submit">
+          <i class="fa-solid fa-magnifying-glass"></i> Search
+        </button>
+      </form>
+
+      <!-- Right nav links -->
+      <div class="navbar-nav ms-3 d-flex flex-row align-items-center gap-2">
+        <a class="nav-link" href="/listings/new" style="white-space:nowrap">
+          <i class="fa-solid fa-plus-circle me-1"></i>Add your home
+        </a>
+
+        <% if (!currUser) { %>
+          <a class="nav-link" href="/signup"><b>Sign Up</b></a>
+          <a class="nav-link" href="/login"><b>Log In</b></a>
+        <% } %>
+
+        <% if (currUser) { %>
+          <!-- NEW FEATURE: Wishlist link in navbar -->
+          <a class="nav-link" href="/wishlist" title="My Wishlist">
+            <i class="fa-regular fa-heart"></i>
+          </a>
+          <!-- NEW FEATURE: My Bookings link in navbar -->
+          <a class="nav-link" href="/bookings" title="My Bookings">
+            <i class="fa-regular fa-calendar-check"></i>
+          </a>
+          <a class="nav-link" href="/profile/<%= currUser.username %>">
+            <% if (currUser.profilePhoto && currUser.profilePhoto.url) { %>
+              <img src="<%= currUser.profilePhoto.url %>" alt="avatar"
+                   style="width:28px;height:28px;border-radius:50%;object-fit:cover;margin-right:4px;">
+            <% } else { %>
+              <i class="fa-solid fa-circle-user me-1"></i>
+            <% } %>
+            <b><%= currUser.username %></b>
+          </a>
+          <a class="nav-link" href="/logout"><b>Log Out</b></a>
+        <% } %>
+      </div>
+
+    </div>
+  </div>
+</nav>
+
+<script>
+// NEW FEATURE: Loading bar animation for cold-start feedback
+// On Render free tier, the server can take 30-60s to wake up.
+// This bar starts immediately on navigation so users know something is loading.
+(function() {
+  const bar = document.getElementById("loading-bar");
+  let w = 0;
+  const interval = setInterval(() => {
+    w = Math.min(w + (80 - w) * 0.08, 80);
+    bar.style.width = w + "%";
+  }, 100);
+  window.addEventListener("load", () => {
+    clearInterval(interval);
+    bar.style.width = "100%";
+    setTimeout(() => { bar.style.opacity = "0"; }, 300);
+  });
+})();
+</script>

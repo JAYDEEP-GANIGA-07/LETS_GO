@@ -1,0 +1,296 @@
+<% layout("/layouts/boilerplate") %>
+
+<style>
+/* ─── Category filter bar ─────────────────────────────────────── */
+#filters {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 0 0.5rem;
+  scrollbar-width: none;
+}
+#filters::-webkit-scrollbar { display: none; }
+
+.filter-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.5rem;
+  opacity: 0.55;
+  transition: opacity 0.2s, border-bottom 0.2s;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: #222;
+  border-bottom: 2px solid transparent;
+}
+.filter-btn i { font-size: 1.3rem; }
+.filter-btn:hover, .filter-btn.active {
+  opacity: 1;
+  border-bottom: 2px solid #222;
+  color: #222;
+}
+
+/* ─── Price / GST toggle toolbar ─────────────────────────────── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  flex-wrap: wrap;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 1rem;
+}
+.gst-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 2rem;
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  background: #fff;
+}
+/* NEW FEATURE: Price range + guest filter inputs */
+.filter-inputs {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.filter-inputs input {
+  width: 90px;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid #ddd;
+  border-radius: 0.4rem;
+  font-size: 0.85rem;
+}
+.filter-inputs label { font-size: 0.82rem; color: #555; }
+.filter-apply-btn {
+  padding: 0.35rem 0.9rem;
+  background: #222;
+  color: #fff;
+  border: none;
+  border-radius: 0.4rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+/* ─── Listing cards ──────────────────────────────────────────── */
+.listing-link { text-decoration: none; color: inherit; }
+.listing-card {
+  border: none;
+  margin-bottom: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.listing-card img {
+  height: 16rem;
+  object-fit: cover;
+  border-radius: 0.8rem;
+  width: 100%;
+}
+.listing-card .card-body { padding: 0.6rem 0; }
+.listing-card .card-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.1rem; }
+.listing-meta { font-size: 0.82rem; color: #555; }
+.listing-price { font-size: 0.9rem; margin-top: 0.2rem; }
+.listing-price b { font-weight: 700; }
+
+/* NEW FEATURE: Star rating on index cards */
+.card-stars { color: #f72331; font-size: 0.78rem; }
+.card-stars .review-count { color: #777; margin-left: 3px; }
+
+/* NEW FEATURE: Wishlist heart button on each card */
+.wishlist-btn {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
+  background: rgba(255,255,255,0.85);
+  border: none;
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  font-size: 1rem;
+  color: #222;
+  transition: background 0.2s;
+}
+.wishlist-btn:hover, .wishlist-btn.saved { color: #f72331; }
+
+/* ─── Tax info ───────────────────────────────────────────────── */
+.tax-info { display: none; color: #777; font-size: 0.78rem; }
+
+/* ─── No results ─────────────────────────────────────────────── */
+.no-results {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: #777;
+}
+.no-results i { font-size: 3rem; display: block; margin-bottom: 1rem; }
+</style>
+
+<!-- ═══════════════════════ CATEGORY FILTER PILLS ═══════════════════════════ -->
+<!-- NEW FEATURE: Each pill links to ?category=X which filters the DB query.
+     Previously these were decorative icons with no actual filtering. -->
+<div id="filters">
+  <% const cats = [
+    {key:"trending",    icon:"fa-fire",            label:"Trending"},
+    {key:"rooms",       icon:"fa-bed",              label:"Rooms"},
+    {key:"iconic-city", icon:"fa-mountain-city",    label:"Iconic City"},
+    {key:"mountains",   icon:"fa-mountain",         label:"Mountains"},
+    {key:"castles",     icon:"fa-fort-awesome fa-brands", label:"Castles"},
+    {key:"pools",       icon:"fa-person-swimming",  label:"Pools"},
+    {key:"camping",     icon:"fa-campground",       label:"Camping"},
+    {key:"farms",       icon:"fa-tractor",          label:"Farms"},
+    {key:"arctic",      icon:"fa-snowflake",        label:"Arctic"},
+    {key:"domes",       icon:"fa-igloo",            label:"Domes"},
+    {key:"boats",       icon:"fa-ship",             label:"Boats"},
+    {key:"beach",       icon:"fa-umbrella-beach",   label:"Beach"},
+    {key:"desert",      icon:"fa-sun",              label:"Desert"},
+    {key:"luxury",      icon:"fa-gem",              label:"Luxury"},
+  ]; %>
+  <% for(const c of cats){ %>
+    <a href="/listings?category=<%= c.key %><%= search ? '&search='+encodeURIComponent(search) : '' %>"
+       class="filter-btn <%= category === c.key ? 'active' : '' %>">
+      <i class="fa-solid <%= c.icon %>"></i>
+      <span><%= c.label %></span>
+    </a>
+  <% } %>
+</div>
+
+<!-- ═══════════════════════ FILTER TOOLBAR ══════════════════════════════════ -->
+<!-- NEW FEATURE: Price range filter + guest count filter -->
+<div class="toolbar">
+  <form action="/listings" method="GET" class="filter-inputs" id="filterForm">
+    <% if (category) { %><input type="hidden" name="category" value="<%= category %>"><% } %>
+    <% if (search)   { %><input type="hidden" name="search"   value="<%= search %>">  <% } %>
+    <label>Min ₹</label>
+    <input type="number" name="minPrice" placeholder="0"      value="<%= minPrice %>" min="0">
+    <label>Max ₹</label>
+    <input type="number" name="maxPrice" placeholder="Any"    value="<%= maxPrice %>" min="0">
+    <label>Guests</label>
+    <input type="number" name="guests"   placeholder="Any"    value="<%= guests %>"   min="1">
+    <button type="submit" class="filter-apply-btn">Apply</button>
+    <a href="/listings<%= category ? '?category='+category : '' %>" class="filter-apply-btn" style="background:#777; text-decoration:none;">Clear</a>
+  </form>
+
+  <!-- NEW FEATURE: GST toggle that actually calculates 18% correctly -->
+  <div class="gst-toggle ms-auto">
+    <div class="form-check-reverse form-switch mb-0">
+      <input class="form-check-input" type="checkbox" role="switch" id="gstSwitch">
+      <label class="form-check-label" for="gstSwitch">Show total with 18% GST</label>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ LISTING CARDS GRID ══════════════════════════════ -->
+<% if (allListings.length === 0) { %>
+  <div class="no-results">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <h5>No listings found</h5>
+    <p>Try different search terms or remove a filter.</p>
+    <a href="/listings" class="btn btn-dark mt-2">Clear all filters</a>
+  </div>
+<% } else { %>
+<div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 mt-1">
+  <% for(let listing of allListings){ %>
+    <div class="col mb-3 position-relative">
+
+      <!-- NEW FEATURE: Wishlist heart button on every card -->
+      <% if (currUser) { %>
+      <button class="wishlist-btn <%= listing.savedBy && listing.savedBy.some(id => currUser && id.equals(currUser._id)) ? 'saved' : '' %>"
+              data-id="<%= listing._id %>"
+              title="Save to wishlist">
+        <i class="<%= listing.savedBy && listing.savedBy.some(id => currUser && id.equals(currUser._id)) ? 'fa-solid' : 'fa-regular' %> fa-heart"></i>
+      </button>
+      <% } %>
+
+      <a href="/listings/<%= listing._id %>" class="listing-link">
+        <div class="listing-card">
+          <div class="img-wrapper"><img src="<%= listing.primaryImage %>" alt="<%= listing.title %>"></div>
+          <div class="card-body">
+            <div class="card-title"><%= listing.title %></div>
+            <div class="listing-meta"><%= listing.location %>, <%= listing.country %></div>
+
+            <!-- NEW FEATURE: Star rating shown on every index card -->
+            <% const avg = listing.avgRating; const rCount = listing.reviews ? listing.reviews.length : 0; %>
+            <% if (rCount > 0) { %>
+            <div class="card-stars">
+              <i class="fa-solid fa-star"></i> <%= avg %>
+              <span class="review-count">(<%= rCount %>)</span>
+            </div>
+            <% } %>
+
+            <!-- NEW FEATURE: GST calculation — shows actual number, not just label -->
+            <div class="listing-price">
+              <b>₹<span class="base-price" data-price="<%= listing.price %>"><%= listing.price.toLocaleString("en-IN") %></span></b>/night
+              <span class="tax-info ms-1 text-muted"></span>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+  <% } %>
+</div>
+<% } %>
+
+<script>
+// ─── GST Toggle — actually calculates 18% ────────────────────────────────────
+// NEW FEATURE: Previously "+18% GST" was just static text appended as a label.
+// Now the toggle computes the actual GST amount and shows the real total.
+const gstSwitch = document.getElementById("gstSwitch");
+gstSwitch.addEventListener("change", () => {
+  const basePrices  = document.querySelectorAll(".base-price");
+  const taxInfoEls  = document.querySelectorAll(".tax-info");
+  basePrices.forEach((el, i) => {
+    const price = Number(el.dataset.price);
+    const gstAmt = Math.round(price * 0.18);
+    const total  = price + gstAmt;
+    if (gstSwitch.checked) {
+      el.textContent = total.toLocaleString("en-IN");
+      taxInfoEls[i].textContent = `(incl. ₹${gstAmt.toLocaleString("en-IN")} GST)`;
+      taxInfoEls[i].style.display = "inline";
+    } else {
+      el.textContent = price.toLocaleString("en-IN");
+      taxInfoEls[i].style.display = "none";
+    }
+  });
+});
+
+// ─── Wishlist AJAX toggle ─────────────────────────────────────────────────────
+// NEW FEATURE: Heart button toggles save state via fetch without page reload
+document.querySelectorAll(".wishlist-btn").forEach(btn => {
+  btn.addEventListener("click", async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const id  = btn.dataset.id;
+    const res = await fetch(`/listings/${id}/save`, { method: "POST", headers: { "X-Requested-With": "XMLHttpRequest" } });
+    if (res.ok) {
+      const data = await res.json();
+      const icon = btn.querySelector("i");
+      if (data.saved) {
+        icon.className = "fa-solid fa-heart";
+        btn.classList.add("saved");
+      } else {
+        icon.className = "fa-regular fa-heart";
+        btn.classList.remove("saved");
+      }
+    } else if (res.status === 401) {
+      window.location.href = "/login";
+    }
+  });
+});
+</script>

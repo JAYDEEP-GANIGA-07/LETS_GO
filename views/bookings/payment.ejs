@@ -1,0 +1,86 @@
+<% layout("/layouts/boilerplate") %>
+<style>
+.payment-card {
+  max-width: 520px; margin: 2rem auto;
+  border: 1px solid #ddd; border-radius: 1rem;
+  padding: 2rem; box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+  text-align: center;
+}
+.pay-amount { font-size: 2rem; font-weight: 700; color: #222; margin: 1rem 0; }
+.pay-meta { font-size: 0.88rem; color: #777; margin-bottom: 1.5rem; }
+.pay-btn {
+  width: 100%; padding: 0.85rem; font-size: 1.05rem; font-weight: 700;
+  background: #f72331; color: #fff; border: none; border-radius: 0.7rem;
+  cursor: pointer; transition: background 0.2s;
+}
+.pay-btn:hover { background: #d81c29; }
+.secure-note { font-size: 0.78rem; color: #999; margin-top: 0.8rem; }
+</style>
+
+<!-- NEW FEATURE: Razorpay payment page
+     After the booking form is submitted, this page loads the Razorpay JS SDK
+     and auto-opens the payment modal with the correct order ID and amount.
+     On success, the frontend POSTs to /bookings/verify-payment for HMAC verification. -->
+<div class="payment-card">
+  <i class="fa-solid fa-lock" style="font-size:2rem;color:#f72331"></i>
+  <h4 class="mt-2">Complete your payment</h4>
+
+  <div class="pay-amount">₹<%= booking.totalAmount.toLocaleString("en-IN") %></div>
+  <div class="pay-meta">
+    <%= listing.title %><br>
+    <%= new Date(booking.checkIn).toDateString() %> → <%= new Date(booking.checkOut).toDateString() %>
+    &bull; <%= booking.guests %> guest<%= booking.guests > 1 ? 's' : '' %>
+  </div>
+
+  <button class="pay-btn" id="payBtn">
+    <i class="fa-solid fa-credit-card me-2"></i>Pay ₹<%= booking.totalAmount.toLocaleString("en-IN") %>
+  </button>
+  <p class="secure-note">🔒 Secured by Razorpay &bull; 256-bit encryption</p>
+
+  <!-- Hidden form to submit verification details after successful payment -->
+  <form action="/bookings/verify-payment" method="POST" id="verifyForm" style="display:none">
+    <input type="hidden" name="bookingId"           value="<%= booking._id %>">
+    <input type="hidden" name="razorpay_order_id"   id="orderId">
+    <input type="hidden" name="razorpay_payment_id" id="paymentId">
+    <input type="hidden" name="razorpay_signature"  id="signature">
+  </form>
+</div>
+
+<!-- Load Razorpay checkout SDK -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+// NEW FEATURE: Razorpay payment integration
+// Opens the Razorpay payment modal with the order created server-side.
+// On success → fills hidden form with payment IDs and submits for server verification.
+// On failure/dismiss → shows an error message to the user.
+const options = {
+  key:         "<%= razorpayKeyId %>",
+  amount:      <%= booking.totalAmount * 100 %>,  // in paise
+  currency:    "INR",
+  name:        "WanderLust",
+  description: "Booking for <%= listing.title %>",
+  order_id:    "<%= booking.razorpayOrderId %>",
+  handler: function(response) {
+    // Payment succeeded — fill the hidden form and submit for HMAC verification
+    document.getElementById("orderId").value   = response.razorpay_order_id;
+    document.getElementById("paymentId").value = response.razorpay_payment_id;
+    document.getElementById("signature").value = response.razorpay_signature;
+    document.getElementById("verifyForm").submit();
+  },
+  prefill: {
+    name:  "<%= booking.guest ? booking.guest.username || '' : '' %>",
+    email: "<%= booking.guest ? booking.guest.email || '' : '' %>",
+  },
+  theme: { color: "#f72331" },
+  modal: {
+    ondismiss: function() {
+      document.getElementById("payBtn").textContent = "Try Payment Again";
+    }
+  }
+};
+
+const rzp = new Razorpay(options);
+document.getElementById("payBtn").addEventListener("click", () => rzp.open());
+// Auto-open the modal when the page loads
+window.addEventListener("load", () => setTimeout(() => rzp.open(), 500));
+</script>

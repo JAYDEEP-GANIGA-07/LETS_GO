@@ -1,0 +1,170 @@
+<% layout("/layouts/boilerplate") %>
+<style>
+/* ─── NEW FEATURE: Full host profile page ─────────────────────────────────── */
+/* Previously only showed username initial, listings count, review count.     */
+/* Now shows bio, profile photo, years hosting, response stats, edit form.    */
+.profile-hero {
+  display: flex; gap: 2rem; align-items: flex-start;
+  padding: 2rem 0; border-bottom: 1px solid #eee; flex-wrap: wrap;
+}
+.profile-avatar {
+  width: 100px; height: 100px; border-radius: 50%; object-fit: cover;
+  background: #f72331; color: #fff; font-size: 2.5rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  border: 3px solid #fff; box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+.profile-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.profile-stats { display: flex; gap: 2rem; flex-wrap: wrap; margin-top: 0.8rem; }
+.profile-stat  { text-align: center; }
+.profile-stat .num { font-size: 1.4rem; font-weight: 700; line-height: 1; }
+.profile-stat .lbl { font-size: 0.78rem; color: #777; margin-top: 2px; }
+.badge-verified { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.78rem;
+  background: #d4edda; color: #155724; padding: 0.15rem 0.6rem; border-radius: 2rem; margin-left: 0.4rem; }
+/* Edit bio panel */
+.edit-panel { background: #f8f9fa; border: 1px solid #eee; border-radius: 0.8rem; padding: 1.2rem; margin-top: 1rem; }
+/* Listing grid */
+.profile-listing img { width: 100%; height: 160px; object-fit: cover; border-radius: 0.7rem; }
+.profile-listing-title { font-weight: 700; font-size: 0.9rem; margin-top: 0.4rem; }
+.profile-listing-meta  { font-size: 0.8rem; color: #777; }
+/* Wishlist section */
+.wishlist-thumb img { width: 100%; height: 130px; object-fit: cover; border-radius: 0.6rem; }
+.wishlist-thumb-title { font-weight: 600; font-size: 0.85rem; margin-top: 0.3rem; }
+</style>
+
+<div class="mt-4">
+
+  <!-- ════════════ PROFILE HERO ════════════════════════════════════════════ -->
+  <div class="profile-hero">
+
+    <!-- Avatar -->
+    <div class="profile-avatar">
+      <% if (profileUser.profilePhoto && profileUser.profilePhoto.url) { %>
+        <img src="<%= profileUser.profilePhoto.url %>" alt="<%= profileUser.username %>">
+      <% } else { %>
+        <%= profileUser.username.charAt(0).toUpperCase() %>
+      <% } %>
+    </div>
+
+    <!-- Info block -->
+    <div style="flex:1">
+      <h3 class="mb-0">
+        <%= profileUser.username %>
+        <% if (profileUser.emailVerified) { %>
+          <span class="badge-verified"><i class="fa-solid fa-circle-check"></i> Verified</span>
+        <% } %>
+      </h3>
+      <div style="font-size:0.85rem;color:#777;margin-top:0.2rem">
+        Member since <%= new Date(profileUser.createdAt || Date.now()).toLocaleDateString("en-IN",{month:"long",year:"numeric"}) %>
+      </div>
+
+      <!-- NEW FEATURE: Bio text -->
+      <p style="font-size:0.92rem;margin-top:0.7rem;max-width:500px;line-height:1.6">
+        <%= profileUser.bio || 'This host hasn\'t added a bio yet.' %>
+      </p>
+
+      <!-- Stats row -->
+      <div class="profile-stats">
+        <div class="profile-stat">
+          <div class="num"><%= userListings.length %></div>
+          <div class="lbl">Listing<%= userListings.length !== 1 ? 's' : '' %></div>
+        </div>
+        <div class="profile-stat">
+          <div class="num"><%= totalReviews %></div>
+          <div class="lbl">Review<%= totalReviews !== 1 ? 's' : '' %></div>
+        </div>
+        <% if (totalReviews > 0) { %>
+        <div class="profile-stat">
+          <div class="num"><i class="fa-solid fa-star" style="color:#f72331;font-size:1rem"></i> <%= avgRating %></div>
+          <div class="lbl">Avg rating</div>
+        </div>
+        <% } %>
+        <div class="profile-stat">
+          <!-- NEW FEATURE: Years hosting derived from account createdAt -->
+          <div class="num"><%= yearsHosting || 1 %>+</div>
+          <div class="lbl">Yr<%= yearsHosting !== 1 ? 's' : '' %> hosting</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit button (own profile only) -->
+    <% if (currUser && currUser._id.equals(profileUser._id)) { %>
+    <button class="btn btn-outline-dark btn-sm" onclick="document.getElementById('editPanel').classList.toggle('d-none')">
+      <i class="fa-solid fa-pen-to-square me-1"></i>Edit profile
+    </button>
+    <% } %>
+  </div>
+
+  <!-- NEW FEATURE: Edit profile panel (bio + photo upload) -->
+  <% if (currUser && currUser._id.equals(profileUser._id)) { %>
+  <div id="editPanel" class="edit-panel d-none mt-3">
+    <h6 class="mb-3">Edit your profile</h6>
+    <form action="/profile/<%= profileUser.username %>/edit" method="POST" enctype="multipart/form-data">
+      <div class="mb-3">
+        <label class="form-label" style="font-size:0.88rem">Bio</label>
+        <textarea name="bio" class="form-control" rows="3"
+                  placeholder="Tell guests about yourself — your hobbies, where you're from, what you love about hosting..."><%= profileUser.bio || '' %></textarea>
+      </div>
+      <div class="mb-3">
+        <label class="form-label" style="font-size:0.88rem">Profile photo</label>
+        <input type="file" name="profilePhoto" class="form-control" accept="image/*">
+      </div>
+      <button class="btn btn-dark btn-sm">Save changes</button>
+      <button type="button" class="btn btn-outline-secondary btn-sm ms-2"
+              onclick="document.getElementById('editPanel').classList.add('d-none')">Cancel</button>
+    </form>
+  </div>
+  <% } %>
+
+  <!-- ════════════ LISTINGS ═════════════════════════════════════════════════ -->
+  <h5 class="mt-4 mb-3">
+    <%= profileUser.username === (currUser && currUser.username) ? 'Your listings' : profileUser.username + "'s listings" %>
+    <span style="color:#777;font-weight:400;font-size:0.9rem">(<%= userListings.length %>)</span>
+  </h5>
+
+  <% if (userListings.length === 0) { %>
+    <p class="text-muted">No listings yet.</p>
+  <% } else { %>
+  <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 g-3">
+    <% for (const listing of userListings) { %>
+    <div class="col">
+      <a href="/listings/<%= listing._id %>" class="text-decoration-none text-dark">
+        <div class="profile-listing">
+          <img src="<%= listing.primaryImage %>" alt="<%= listing.title %>">
+          <div class="profile-listing-title"><%= listing.title %></div>
+          <div class="profile-listing-meta"><%= listing.location %>, <%= listing.country %></div>
+          <div class="profile-listing-meta">
+            <b>₹<%= listing.price.toLocaleString("en-IN") %></b>/night
+            <% if (listing.reviews && listing.reviews.length > 0) { %>
+              &middot; <i class="fa-solid fa-star" style="color:#f72331;font-size:0.75rem"></i>
+              <%= listing.avgRating %> (<%= listing.reviews.length %>)
+            <% } %>
+          </div>
+        </div>
+      </a>
+    </div>
+    <% } %>
+  </div>
+  <% } %>
+
+  <!-- ════════════ WISHLIST (own profile only) ══════════════════════════════ -->
+  <% if (currUser && currUser._id.equals(profileUser._id) && wishlistListings && wishlistListings.length > 0) { %>
+  <hr class="my-4">
+  <h5 class="mb-3">Your Wishlist ❤️
+    <span style="color:#777;font-weight:400;font-size:0.9rem">(<%= wishlistListings.length %>)</span>
+  </h5>
+  <div class="row row-cols-lg-4 row-cols-md-3 row-cols-sm-2 g-3">
+    <% for (const wl of wishlistListings) { %>
+    <div class="col">
+      <a href="/listings/<%= wl._id %>" class="text-decoration-none text-dark">
+        <div class="wishlist-thumb">
+          <img src="<%= wl.primaryImage %>" alt="<%= wl.title %>">
+          <div class="wishlist-thumb-title"><%= wl.title %></div>
+          <div style="font-size:0.8rem;color:#777"><%= wl.location %></div>
+        </div>
+      </a>
+    </div>
+    <% } %>
+  </div>
+  <% } %>
+
+</div>

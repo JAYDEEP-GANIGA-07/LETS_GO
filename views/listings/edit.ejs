@@ -1,0 +1,243 @@
+<% layout("/layouts/boilerplate") %>
+<style>
+.form-section { background: #fafafa; border: 1px solid #eee; border-radius: 0.8rem; padding: 1.5rem; margin-bottom: 1.5rem; }
+.form-section h5 { font-weight: 700; margin-bottom: 1rem; font-size: 1rem; }
+/* NEW FEATURE: Image grid for deleting existing photos during edit */
+.existing-photos { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.5rem; }
+.existing-photo  { position: relative; }
+.existing-photo img { width: 90px; height: 70px; object-fit: cover; border-radius: 0.4rem; }
+.existing-photo .del-check { position: absolute; top: 4px; right: 4px; }
+.del-label { font-size: 0.72rem; color: #dc3545; display: block; text-align: center; }
+</style>
+
+<div class="row mt-3">
+  <div class="col-lg-8 offset-lg-2">
+    <h3 class="mb-1">Edit Listing</h3>
+    <p class="text-muted mb-3">Update any details about your space.</p>
+
+    <form method="POST" action="/listings/<%= listing._id %>?_method=PUT"
+          novalidate class="needs-validation" enctype="multipart/form-data">
+
+      <!-- ─── Basic info ─────────────────────────────── -->
+      <div class="form-section">
+        <h5>📌 Basic Information</h5>
+        <div class="mb-3">
+          <label class="form-label">Title <span class="text-danger">*</span></label>
+          <input name="listing[title]" type="text" class="form-control"
+                 value="<%= listing.title %>" required>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Country <span class="text-danger">*</span></label>
+            <input name="listing[country]" type="text" class="form-control"
+                   value="<%= listing.country %>" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">City / Location <span class="text-danger">*</span></label>
+            <input name="listing[location]" type="text" class="form-control"
+                   value="<%= listing.location %>" required>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Category</label>
+          <select name="listing[category]" class="form-select">
+            <% const cats2 = ["trending","rooms","iconic-city","mountains","castles","pools",
+               "camping","farms","arctic","domes","boats","beach","desert","luxury"]; %>
+            <% for (const c of cats2) { %>
+            <option value="<%= c %>" <%= listing.category === c ? 'selected' : '' %>>
+              <%= c.charAt(0).toUpperCase() + c.slice(1).replace('-',' ') %>
+            </option>
+            <% } %>
+          </select>
+        </div>
+      </div>
+
+      <!-- ─── Description sections ─────────────────── -->
+      <div class="form-section">
+        <h5>📝 About Your Space</h5>
+        <%
+          const desc = listing.description && typeof listing.description === 'object'
+                       ? listing.description : {};
+        %>
+        <div class="mb-3">
+          <label class="form-label">About this space <span class="text-danger">*</span></label>
+          <textarea name="listing[description][aboutSpace]" class="form-control" rows="3" required><%= desc.aboutSpace || '' %></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">The space</label>
+          <textarea name="listing[description][theSpace]" class="form-control" rows="2"><%= desc.theSpace || '' %></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Guest access</label>
+          <textarea name="listing[description][guestAccess]" class="form-control" rows="2"><%= desc.guestAccess || '' %></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">The neighborhood</label>
+          <textarea name="listing[description][neighborhood]" class="form-control" rows="2"><%= desc.neighborhood || '' %></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Other things to note</label>
+          <textarea name="listing[description][otherThings]" class="form-control" rows="2"><%= desc.otherThings || '' %></textarea>
+        </div>
+      </div>
+
+      <!-- ─── Pricing & Capacity ─────────────────────── -->
+      <div class="form-section">
+        <h5>💰 Pricing & Capacity</h5>
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <label class="form-label">Price per night (₹) <span class="text-danger">*</span></label>
+            <input name="listing[price]" type="number" class="form-control"
+                   value="<%= listing.price %>" min="0" required>
+          </div>
+          <div class="col-md-2 mb-3">
+            <label class="form-label">Max guests</label>
+            <input name="listing[maxGuests]" type="number" class="form-control"
+                   value="<%= listing.maxGuests || 2 %>" min="1" max="20">
+          </div>
+          <div class="col-md-2 mb-3">
+            <label class="form-label">Bedrooms</label>
+            <input name="listing[bedrooms]" type="number" class="form-control"
+                   value="<%= listing.bedrooms || 1 %>" min="0" max="20">
+          </div>
+          <div class="col-md-2 mb-3">
+            <label class="form-label">Beds</label>
+            <input name="listing[beds]" type="number" class="form-control"
+                   value="<%= listing.beds || 1 %>" min="1" max="20">
+          </div>
+          <div class="col-md-2 mb-3">
+            <label class="form-label">Bathrooms</label>
+            <input name="listing[bathrooms]" type="number" class="form-control"
+                   value="<%= listing.bathrooms || 1 %>" min="0" max="10" step="0.5">
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── Photos — existing + new ──────────────────── -->
+      <div class="form-section">
+        <h5>📷 Photos</h5>
+
+        <!-- NEW FEATURE: Show existing photos with delete checkboxes -->
+        <!-- Checking a photo marks its filename in deleteImages[] -->
+        <!-- The route handler removes checked photos from Cloudinary + DB -->
+        <% const existImgs = listing.images && listing.images.length > 0
+             ? listing.images
+             : (listing.image && listing.image.url ? [listing.image] : []); %>
+        <% if (existImgs.length > 0) { %>
+        <p style="font-size:0.85rem;color:#555">Existing photos — check to remove:</p>
+        <div class="existing-photos">
+          <% for (const img of existImgs) { %>
+          <div class="existing-photo">
+            <img src="<%= img.url %>" alt="photo">
+            <input class="del-check form-check-input" type="checkbox"
+                   name="deleteImages[]" value="<%= img.filename %>">
+            <span class="del-label">Remove</span>
+          </div>
+          <% } %>
+        </div>
+        <% } %>
+
+        <div class="mt-3">
+          <label class="form-label">Add new photos</label>
+          <input name="listing[images]" type="file" class="form-control" accept="image/*" multiple>
+          <div class="text-muted" style="font-size:0.8rem">Leave blank to keep existing photos.</div>
+        </div>
+      </div>
+
+      <!-- ─── Amenities ─────────────────────────────────── -->
+      <div class="form-section">
+        <h5>✨ Amenities</h5>
+        <div class="row">
+          <% const ams = [
+            {val:"wifi","label":"WiFi"},{val:"ac","label":"Air conditioning"},
+            {val:"kitchen","label":"Kitchen"},{val:"parking","label":"Free parking"},
+            {val:"pool","label":"Pool"},{val:"tv","label":"TV"},
+            {val:"washing-machine","label":"Washing machine"},{val:"gym","label":"Gym"},
+            {val:"pet-friendly","label":"Pets allowed"},{val:"smoke-alarm","label":"Smoke alarm"},
+            {val:"first-aid","label":"First aid kit"},{val:"fire-extinguisher","label":"Fire extinguisher"},
+            {val:"workspace","label":"Dedicated workspace"},{val:"hot-tub","label":"Hot tub"},
+            {val:"bbq","label":"BBQ grill"},
+          ]; %>
+          <% for (const a of ams) { %>
+          <div class="col-md-4 col-6 mb-2">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="listing[amenities]"
+                     value="<%= a.val %>" id="ea-<%= a.val %>"
+                     <%= listing.amenities && listing.amenities.includes(a.val) ? 'checked' : '' %>>
+              <label class="form-check-label" for="ea-<%= a.val %>"><%= a.label %></label>
+            </div>
+          </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- ─── House Rules ────────────────────────────────── -->
+      <div class="form-section">
+        <h5>📋 House Rules</h5>
+        <% const hr = listing.houseRules || {}; %>
+        <div class="row">
+          <div class="col-md-3 mb-3">
+            <label class="form-label">Check-in time</label>
+            <input type="time" name="listing[houseRules][checkInTime]" class="form-control"
+                   value="<%= hr.checkInTime || '15:00' %>">
+          </div>
+          <div class="col-md-3 mb-3">
+            <label class="form-label">Checkout time</label>
+            <input type="time" name="listing[houseRules][checkOutTime]" class="form-control"
+                   value="<%= hr.checkOutTime || '11:00' %>">
+          </div>
+          <div class="col-md-2 mb-3 d-flex align-items-end">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="listing[houseRules][smokingAllowed]"
+                     id="e-smoking" <%= hr.smokingAllowed ? 'checked' : '' %>>
+              <label class="form-check-label" for="e-smoking">Smoking OK</label>
+            </div>
+          </div>
+          <div class="col-md-2 mb-3 d-flex align-items-end">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="listing[houseRules][petsAllowed]"
+                     id="e-pets" <%= hr.petsAllowed ? 'checked' : '' %>>
+              <label class="form-check-label" for="e-pets">Pets OK</label>
+            </div>
+          </div>
+          <div class="col-md-2 mb-3 d-flex align-items-end">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="listing[houseRules][partiesAllowed]"
+                     id="e-parties" <%= hr.partiesAllowed ? 'checked' : '' %>>
+              <label class="form-check-label" for="e-parties">Events OK</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── Cancellation Policy ───────────────────────── -->
+      <div class="form-section">
+        <h5>🛡️ Cancellation Policy</h5>
+        <div class="row">
+          <% const pols = [
+            {val:"flexible",label:"Flexible",desc:"Full refund if 24h+ before check-in"},
+            {val:"moderate",label:"Moderate",desc:"Full refund if 5+ days. 50% within 5 days."},
+            {val:"strict",  label:"Strict",  desc:"50% refund if 7+ days. None after."},
+          ]; %>
+          <% for (const p of pols) { %>
+          <div class="col-md-4 mb-2">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="listing[cancellationPolicy]"
+                     value="<%= p.val %>" id="ep-<%= p.val %>"
+                     <%= listing.cancellationPolicy === p.val ? 'checked' : '' %>>
+              <label class="form-check-label" for="ep-<%= p.val %>">
+                <b><%= p.label %></b><br><small class="text-muted"><%= p.desc %></small>
+              </label>
+            </div>
+          </div>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="d-flex gap-2 mb-4">
+        <button class="btn btn-dark btn-lg">Save Changes</button>
+        <a href="/listings/<%= listing._id %>" class="btn btn-outline-secondary btn-lg">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
